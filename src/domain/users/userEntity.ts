@@ -18,6 +18,12 @@ export class User {
   @Column({ type: 'varchar', length: 300, nullable: true })
   password!: string;
 
+  @Column({ type: 'varchar', length: 200, nullable: true })
+  google_id!: string;
+
+  @Column({ type: 'varchar', length: 200, nullable: true })
+  kakao_id!: string;
+
   @CreateDateColumn({
     type: 'timestamp',
     nullable: false,
