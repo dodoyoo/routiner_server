@@ -6,7 +6,13 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   PrimaryGeneratedColumn,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
 } from 'typeorm';
+import { User } from '../users/userEntity';
+import { Routines } from '../routines/routineEntity';
+import { RoutineTimes } from '../routineTimes/routineTimeEntity';
 
 @Entity('user_routines')
 export class UserRoutines {
@@ -41,4 +47,17 @@ export class UserRoutines {
     default: () => 'CURRENT_TIMESTAMP',
   })
   updated_at!: Date;
+
+  @ManyToOne(() => User, (user) => user.userRoutines, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
+  user!: User;
+
+  @ManyToOne(() => Routines, (routine) => routine.userRoutines, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'routine_id' })
+  routine!: Routines;
+
+  @OneToMany(() => RoutineTimes, (routineTime) => routineTime.userRoutine)
+  routineTimes!: RoutineTimes[];
 }

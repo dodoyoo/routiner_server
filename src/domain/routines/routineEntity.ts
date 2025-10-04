@@ -5,7 +5,11 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
 } from 'typeorm';
+import { UserRoutines } from '../userRoutines/userRoutineEntity';
 
 @Entity('routines')
 export class Routines {
@@ -37,4 +41,7 @@ export class Routines {
     default: () => 'CURRENT_TIMESTAMP',
   })
   updated_at!: Date;
+
+  @OneToMany(() => UserRoutines, (userRoutine) => userRoutine.routine)
+  userRoutines!: UserRoutines[];
 }
