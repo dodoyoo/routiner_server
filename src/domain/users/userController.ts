@@ -69,7 +69,7 @@ export class UserController {
       });
     } catch (error) {
       console.error('구글 로그인 실패:', error);
-      return res.status(500).json({ message: '구글 로그인 실패' });
+      return res.status(404).json({ message: '구글 로그인 실패' });
     }
   }
 }
