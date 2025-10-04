@@ -1,5 +1,8 @@
 import { DataSource } from 'typeorm';
 import { User } from '../domain/users/userEntity';
+import { UserRoutines } from '../domain/userRoutines/userRoutineEntity';
+import { RoutineTimes } from '../domain/routineTimes/routineTimeEntity';
+import { Routines } from '../domain/routines/routineEntity';
 
 export const AppDataSource = new DataSource({
   type: 'mysql',
@@ -10,5 +13,5 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_DATABASE,
   logging: true,
   synchronize: false,
-  entities: [User],
+  entities: [User, Routines, UserRoutines, RoutineTimes],
 });

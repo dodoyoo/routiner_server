@@ -8,19 +8,21 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-@Entity('users')
-export class User {
+export class RoutineTimes {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column({ type: 'varchar', length: 250, nullable: true })
-  email!: string;
+  @Column({ type: 'integer', nullable: false })
+  user_id!: number;
 
-  @Column({ type: 'varchar', length: 200, nullable: true })
-  google_id!: string;
+  @Column({ type: 'integer', nullable: false })
+  user_routine_id!: number;
 
-  @Column({ type: 'varchar', length: 200, nullable: true })
-  kakao_id!: string;
+  @Column({ type: 'date', nullable: false })
+  date!: Date;
+
+  @Column({ type: 'integer', nullable: false })
+  progress!: number;
 
   @CreateDateColumn({
     type: 'timestamp',
