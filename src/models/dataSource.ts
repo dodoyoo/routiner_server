@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import { User } from '../domain/users/userEntity';
 import { UserRoutines } from '../domain/userRoutines/userRoutineEntity';
@@ -14,4 +15,6 @@ export const AppDataSource = new DataSource({
   logging: true,
   synchronize: false,
   entities: [User, Routines, UserRoutines, RoutineTimes],
+  migrations: ['src/models/dataSource.ts'],
+  migrationsRun: true,
 });
