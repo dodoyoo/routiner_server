@@ -6,7 +6,12 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   PrimaryGeneratedColumn,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
 } from 'typeorm';
+import { RoutineTimes } from '../routineTimes/routineTimeEntity';
+import { UserRoutines } from '../userRoutines/userRoutineEntity';
 
 @Entity('users')
 export class User {
@@ -15,9 +20,6 @@ export class User {
 
   @Column({ type: 'varchar', length: 250, nullable: true })
   email!: string;
-
-  @Column({ type: 'varchar', length: 300, nullable: true })
-  password!: string;
 
   @Column({ type: 'varchar', length: 200, nullable: true })
   google_id!: string;
@@ -38,4 +40,10 @@ export class User {
     default: () => 'CURRENT_TIMESTAMP',
   })
   updated_at!: Date;
+
+  @OneToMany(() => UserRoutines, (userRoutine) => userRoutine.user)
+  userRoutines!: UserRoutines[];
+
+  @OneToMany(() => RoutineTimes, (routineTime) => routineTime.user)
+  routineTimes!: RoutineTimes[];
 }
