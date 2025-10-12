@@ -13,6 +13,7 @@ import {
 import { User } from '../users/userEntity';
 import { UserRoutines } from '../userRoutines/userRoutineEntity';
 
+@Entity('routine_times')
 export class RoutineTimes {
   @PrimaryGeneratedColumn()
   id!: number;
@@ -43,13 +44,11 @@ export class RoutineTimes {
   })
   updated_at!: Date;
 
-  @ManyToOne(() => User, (user) => user.routineTimes, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (user) => user.routineTimes)
   @JoinColumn({ name: 'user_id' })
   user!: User;
 
-  @ManyToOne(() => UserRoutines, (userRoutine) => userRoutine.routineTimes, {
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(() => UserRoutines, (userRoutine) => userRoutine.routineTimes)
   @JoinColumn({ name: 'user_routine_id' })
   userRoutine!: UserRoutines;
 }
