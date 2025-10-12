@@ -48,13 +48,11 @@ export class UserRoutines {
   })
   updated_at!: Date;
 
-  @ManyToOne(() => User, (user) => user.userRoutines, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (user) => user.userRoutines)
   @JoinColumn({ name: 'user_id' })
   user!: User;
 
-  @ManyToOne(() => Routines, (routine) => routine.userRoutines, {
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(() => Routines, (routine) => routine.userRoutines)
   @JoinColumn({ name: 'routine_id' })
   routine!: Routines;
 

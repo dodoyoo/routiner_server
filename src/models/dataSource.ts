@@ -15,6 +15,6 @@ export const AppDataSource = new DataSource({
   logging: true,
   synchronize: false,
   entities: [User, Routines, UserRoutines, RoutineTimes],
-  migrations: ['src/models/dataSource.ts'],
+  migrations: ['src/models/migration/*.ts'],
   migrationsRun: true,
 });
