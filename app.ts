@@ -4,7 +4,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import compression from 'compression';
 import userRouter from './src/domain/users/userRoute';
-
+import routineRouter from './src/domain/routines/routineRoute';
 export const createApp = () => {
   const app = express();
 
@@ -18,6 +18,7 @@ export const createApp = () => {
   app.use(compression());
 
   app.use(userRouter);
+  app.use(routineRouter);
 
   app.get('/ping', (req: Request, res: Response) => {
     res.status(200).json({ message: 'pong' });
