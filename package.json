@@ -5,7 +5,7 @@
   "main": "server.ts",
   "scripts": {
     "dev": "env-cmd -f .env.development nodemon --config nodemon.json --exec ts-node server",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "seed:routines": "env-cmd -f .env.development ts-node ./src/database/seeds/routineSeed.ts",
     "typeorm": "env-cmd -f .env.development ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js --dataSource ./src/models/dataSource.ts",
     "migration:create": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:create ./src/database/migrations/Migration",
     "migration:generate": "npm run typeorm migration:generate ./src/database/migrations/Migration",
