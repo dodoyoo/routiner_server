@@ -8,7 +8,7 @@ router.get('/api/routines', (req, res) =>
   routineController.allRoutines(req, res)
 );
 
-router.get('/api/category/:category', (req, res) =>
+router.get('/api/routines/:category', (req, res) =>
   routineController.routinesByCategory(req, res)
 );
 
