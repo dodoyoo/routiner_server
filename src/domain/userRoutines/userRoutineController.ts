@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { UserRepository } from '../users/userRepository';
 import {
+  NotFoundDataError,
   PropertyRequiredError,
   ValidationError,
 } from '../../utils/customError';
@@ -25,7 +26,7 @@ export class UserRoutineController {
         return reportErrorMessage(err, res);
       }
 
-      const userRoutine = await this.userRoutineRepository.createUserRoutine({
+      const userRoutine = await this.userRoutineRepository.createUserRoutines({
         user_id,
         routine_id,
         start_date,
@@ -42,6 +43,35 @@ export class UserRoutineController {
         return res.status(error.statusCode).json({ message: error.message });
       }
       return res.status(500).json({ message: '루틴 선택에 실패했습니다.' });
+    }
+  }
+
+  public async getUserRoutines(req: Request, res: Response) {
+    try {
+      const { user_id } = req.params;
+
+      if (!user_id) {
+        const err = new PropertyRequiredError('user_id가 필요합니다.');
+        return reportErrorMessage(err, res);
+      }
+
+      const routines = await this.userRoutineRepository.findUserRoutines(
+        Number(user_id)
+      );
+
+      if (!routines || routines.length === 0) {
+        const err = new NotFoundDataError('등록된 루틴이 없습니다.');
+        return reportErrorMessage(err, res);
+      }
+
+      return res
+        .status(200)
+        .json({ message: '사용자 루틴 목록 조회 성공', ata: routines });
+    } catch (error: any) {
+      if (error.statusCode) {
+        return res.status(error.statusCode).json({ message: error.message });
+      }
+      return res.status(500).json({ message: '루틴 조회 실패' });
     }
   }
 }
