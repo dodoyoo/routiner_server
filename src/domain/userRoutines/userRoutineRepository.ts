@@ -16,7 +16,7 @@ export class UserRoutineRepository {
     this.userRepository = dataSource.getRepository(User);
   }
 
-  public async createUserRoutine(data: {
+  public async createUserRoutines(data: {
     user_id: number;
     routine_id: number;
     start_date: Date;
@@ -40,5 +40,21 @@ export class UserRoutineRepository {
     const newRoutines = this.repository.create({ ...data, is_active: true });
 
     return await this.repository.save(newRoutines);
+  }
+
+  public async findUserRoutines(user_id: number) {
+    try {
+      const routines = await this.repository
+        .createQueryBuilder('user_routine')
+        .leftJoinAndSelect('user_routine.routine', 'routine')
+        .where('user_routine.user_id = :user_id', { user_id })
+        .orderBy('user_routine.start_date', 'DESC')
+        .getMany();
+
+      return routines;
+    } catch (error) {
+      console.error('루틴을 불러오는데 실패했습니다.', error);
+      throw new Error('Failed to get routines');
+    }
   }
 }
