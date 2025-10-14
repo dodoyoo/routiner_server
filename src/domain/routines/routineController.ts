@@ -13,6 +13,7 @@ export class RoutineController {
     this.routineRepository = new RoutineRepository();
   }
 
+  //모든 루틴 목록 가져오기
   public async allRoutines(req: Request, res: Response) {
     try {
       const page = Number(req.query.page) || 1;
@@ -39,6 +40,8 @@ export class RoutineController {
       return reportErrorMessage(error, res);
     }
   }
+
+  // 카테고리 별로 루틴 가져오기
   public async routinesByCategory(
     req: Request,
     res: Response
