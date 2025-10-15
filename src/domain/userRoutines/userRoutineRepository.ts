@@ -16,6 +16,7 @@ export class UserRoutineRepository {
     this.userRepository = dataSource.getRepository(User);
   }
 
+  // 사용자 루틴 생성
   public async createUserRoutines(data: {
     user_id: number;
     routine_id: number;
@@ -42,6 +43,7 @@ export class UserRoutineRepository {
     return await this.repository.save(newRoutines);
   }
 
+  // 사용자 루틴 조회
   public async findUserRoutines(user_id: number) {
     try {
       const routines = await this.repository
@@ -56,5 +58,21 @@ export class UserRoutineRepository {
       console.error('루틴을 불러오는데 실패했습니다.', error);
       throw new Error('Failed to get routines');
     }
+  }
+
+  // 루틴 삭제
+  public async deleteUserRoutines(
+    user_id: number,
+    routine_id: number
+  ): Promise<boolean> {
+    const userRoutines = await this.repository.findOne({
+      where: { user_id, routine_id },
+    });
+
+    if (!userRoutines) {
+      return false;
+    }
+    await this.repository.remove(userRoutines);
+    return true;
   }
 }

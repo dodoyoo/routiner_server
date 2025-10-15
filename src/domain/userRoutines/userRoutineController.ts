@@ -15,6 +15,7 @@ export class UserRoutineController {
     this.userRoutineRepository = new UserRoutineRepository();
   }
 
+  // 사용자 루틴 생성
   public async createUserRoutines(req: Request, res: Response) {
     try {
       const { user_id, routine_id, start_date, end_date } = req.body;
@@ -46,6 +47,7 @@ export class UserRoutineController {
     }
   }
 
+  // 사용자 저장 루틴 불러오기
   public async getUserRoutines(req: Request, res: Response) {
     try {
       const { user_id } = req.params;
@@ -72,6 +74,36 @@ export class UserRoutineController {
         return res.status(error.statusCode).json({ message: error.message });
       }
       return res.status(500).json({ message: '루틴 조회 실패' });
+    }
+  }
+
+  public async deleteRoutines(req: Request, res: Response) {
+    try {
+      const { user_id } = req.params;
+      const { routine_id } = req.body;
+
+      if (!user_id || !routine_id) {
+        throw new PropertyRequiredError(
+          'user_id 또는 routine_id가 필요합니다.'
+        );
+      }
+
+      const deleteRoutines =
+        await this.userRoutineRepository.deleteUserRoutines(
+          Number(user_id),
+          Number(routine_id)
+        );
+
+      if (!deleteRoutines) {
+        throw new NotFoundDataError('삭제할 루틴을 찾을 수 없습니다.');
+      }
+
+      return res
+        .status(200)
+        .json({ message: '루틴이 성공적으로 삭제되었습니다.' });
+    } catch (error) {
+      console.error(error);
+      return reportErrorMessage(error, res);
     }
   }
 }
