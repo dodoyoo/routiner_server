@@ -18,7 +18,7 @@ export class UserRoutineController {
   // 사용자 루틴 생성
   public async createUserRoutines(req: Request, res: Response) {
     try {
-      const { user_id, routine_id, start_date, end_date } = req.body;
+      const { user_id, routine_id } = req.body;
 
       if (!user_id || !routine_id) {
         const err = new PropertyRequiredError(
@@ -30,8 +30,6 @@ export class UserRoutineController {
       const userRoutine = await this.userRoutineRepository.createUserRoutines({
         user_id,
         routine_id,
-        start_date,
-        end_date,
       });
       return res.status(201).json({
         message: '루틴이 성공적으로 선택되었습니다.',

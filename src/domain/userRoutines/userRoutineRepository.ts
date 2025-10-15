@@ -20,8 +20,6 @@ export class UserRoutineRepository {
   public async createUserRoutines(data: {
     user_id: number;
     routine_id: number;
-    start_date: Date;
-    end_date: Date;
   }) {
     const { user_id, routine_id } = data;
 
@@ -31,14 +29,25 @@ export class UserRoutineRepository {
     }
 
     const existingRoutines = await this.repository.findOne({
-      where: { user_id: data.user_id, routine_id: data.routine_id },
+      where: { user_id, routine_id },
     });
 
     if (existingRoutines) {
       throw new DuplicatePropertyError('이미 선택한 루틴입니다.');
     }
 
-    const newRoutines = this.repository.create({ ...data, is_active: true });
+    const startDate = new Date();
+
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 7);
+
+    const newRoutines = this.repository.create({
+      user_id,
+      routine_id,
+      start_date: startDate,
+      end_date: endDate,
+      is_active: true,
+    });
 
     return await this.repository.save(newRoutines);
   }
