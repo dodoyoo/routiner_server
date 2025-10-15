@@ -12,4 +12,8 @@ router.get('/api/user-routines/:user_id', (req, res) =>
   userRoutineController.getUserRoutines(req, res)
 );
 
+router.delete('/api/user-routines/:user_id', (req, res) =>
+  userRoutineController.deleteRoutines(req, res)
+);
+
 export default router;
