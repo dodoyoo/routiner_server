@@ -17,4 +17,5 @@ export const AppDataSource = new DataSource({
   entities: [User, Routines, UserRoutines, RoutineTimes],
   migrations: ['src/models/migration/*.ts'],
   migrationsRun: true,
+  timezone: '+09:00',
 });

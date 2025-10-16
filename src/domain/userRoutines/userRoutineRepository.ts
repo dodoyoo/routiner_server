@@ -36,7 +36,10 @@ export class UserRoutineRepository {
       throw new DuplicatePropertyError('이미 선택한 루틴입니다.');
     }
 
-    const startDate = new Date();
+    const now = new Date();
+    const koreaTime = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+
+    const startDate = koreaTime;
 
     const endDate = new Date(startDate);
     endDate.setDate(startDate.getDate() + 7);
