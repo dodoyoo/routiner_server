@@ -61,7 +61,24 @@ export class UserRoutineRepository {
       const routines = await this.repository
         .createQueryBuilder('user_routine')
         .leftJoinAndSelect('user_routine.routine', 'routine')
+        .leftJoinAndSelect('routine.category', 'category')
         .where('user_routine.user_id = :user_id', { user_id })
+        .select([
+          'user_routine.is_active',
+          'user_routine.id',
+          'user_routine.user_id',
+          'user_routine.routine_id',
+          'user_routine.start_date',
+          'user_routine.end_date',
+          'user_routine.created_at',
+          'user_routine.updated_at',
+          'routine.id',
+          'routine.title',
+          'category.id',
+          'category.name',
+          'category.image_filled',
+          'category.image_empty',
+        ])
         .orderBy('user_routine.start_date', 'DESC')
         .getMany();
 

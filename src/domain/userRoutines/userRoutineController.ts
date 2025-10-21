@@ -66,7 +66,7 @@ export class UserRoutineController {
 
       return res
         .status(200)
-        .json({ message: '사용자 루틴 목록 조회 성공', ata: routines });
+        .json({ message: '사용자 루틴 목록 조회 성공', data: routines });
     } catch (error: any) {
       if (error.statusCode) {
         return res.status(error.statusCode).json({ message: error.message });
