@@ -10,6 +10,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { UserRoutines } from '../userRoutines/userRoutineEntity';
+import { Categories } from './categoryEntity';
 
 @Entity('routines')
 export class Routines {
@@ -21,12 +22,6 @@ export class Routines {
 
   @Column({ type: 'varchar', length: 200, nullable: false })
   description!: string;
-
-  @Column({ type: 'varchar', length: 2048, nullable: false })
-  icon_url!: string;
-
-  @Column({ type: 'varchar', length: 100, nullable: false })
-  category!: string;
 
   @CreateDateColumn({
     type: 'timestamp',
@@ -44,4 +39,8 @@ export class Routines {
 
   @OneToMany(() => UserRoutines, (userRoutine) => userRoutine.routine)
   userRoutines!: UserRoutines[];
+
+  @ManyToOne(() => Categories, (category) => category.routines)
+  @JoinColumn({ name: 'category_id' })
+  category!: Categories;
 }
