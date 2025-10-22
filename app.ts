@@ -6,6 +6,7 @@ import compression from 'compression';
 import userRouter from './src/domain/users/userRoute';
 import routineRouter from './src/domain/routines/routineRoute';
 import userRoutineRouter from './src/domain/userRoutines/userRoutineRoute';
+import routineTimeRouter from './src/domain/routineTimes/routineTimeRoute';
 
 export const createApp = () => {
   const app = express();
@@ -22,6 +23,7 @@ export const createApp = () => {
   app.use(userRouter);
   app.use(routineRouter);
   app.use(userRoutineRouter);
+  app.use(routineTimeRouter);
 
   app.get('/ping', (req: Request, res: Response) => {
     res.status(200).json({ message: 'pong' });
