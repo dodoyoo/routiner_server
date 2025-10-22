@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm';
+import { Repository, Raw } from 'typeorm';
 import { AppDataSource } from '../../models/dataSource';
 import { RoutineTimes } from './routineTimeEntity';
 
@@ -38,13 +38,27 @@ export class RoutineTimeRepository {
 
   // 사용자 금일 루틴 진행 상태 조회
   public async getTodayRoutineStatus(user_id: number) {
-    const today2 = new Date().toISOString().split('T')[0]!;
-    const todayDate2 = new Date(today2);
+    const today2 = new Date().toISOString().split('T')[0];
+
     return await this.repository.find({
-      where: { user_id, date: todayDate2 },
+      where: {
+        user_id,
+        date: Raw((alias) => `${alias} = '${today2}'`),
+      },
       relations: ['userRoutine', 'userRoutine.routine'],
     });
   }
+
+  // -> 쿼리빌더 사용시
+  // public async getTodayRoutineStatus(user_id: number) {
+  //   return await this.repository
+  //     .createQueryBuilder('routine_time')
+  //     .leftJoinAndSelect('routine_time.userRoutine', 'userRoutine')
+  //     .leftJoinAndSelect('userRoutine.routine', 'routine')
+  //     .where('routine_time.user_id = :user_id', { user_id })
+  //     .andWhere('DATE(routine_time.date) = CURDATE()')
+  //     .getMany();
+  // }
 
   // 00시 기준 자동 실패 처리
   public async routineFailed(user_id: number, user_routine_id: number) {
