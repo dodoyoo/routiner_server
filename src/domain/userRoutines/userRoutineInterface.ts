@@ -1,6 +1,6 @@
 export interface userRoutineType {
   id: number;
-  userId: number;
+  user_id: number;
   routine_id: number;
   start_date: Date;
   end_date: Date;
