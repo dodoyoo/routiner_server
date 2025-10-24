@@ -8,16 +8,16 @@ export class RoutineTimeRepository {
   constructor(dataSource = AppDataSource) {
     this.repository = dataSource.getRepository(RoutineTimes);
   }
-
+  // 루틴 완료 (progress: 100)
   public async routineComplete(
     user_id: number,
     user_routine_id: number
   ): Promise<RoutineTimes> {
-    const today = new Date();
-    const todayDate1 = new Date(today.toISOString().split('T')[0] as string);
+    const today = new Date().toISOString().split('T')[0] as string;
+    const todayDate = new Date(today);
 
     const existing = await this.repository.findOne({
-      where: { user_id, user_routine_id, date: todayDate1 },
+      where: { user_id, user_routine_id, date: todayDate },
     });
 
     if (existing) {
@@ -29,54 +29,111 @@ export class RoutineTimeRepository {
     const newRecord = this.repository.create({
       user_id,
       user_routine_id,
-      date: todayDate1 as unknown as Date,
+      date: todayDate,
       progress: 100,
     });
 
     return await this.repository.save(newRecord);
   }
 
-  // 사용자 금일 루틴 진행 상태 조회
-  public async getTodayRoutineStatus(user_id: number) {
-    const today2 = new Date().toISOString().split('T')[0];
+  // 자정 기준 자동 실패 처리 (progress: 0)
+  public async routineFailed(
+    user_id: number,
+    user_routine_id: number
+  ): Promise<RoutineTimes> {
+    const today = new Date().toISOString().split('T')[0] as string;
+    const todayDate = new Date(today);
 
-    return await this.repository.find({
-      where: {
-        user_id,
-        date: Raw((alias) => `${alias} = '${today2}'`),
-      },
-      relations: ['userRoutine', 'userRoutine.routine'],
-    });
-  }
-
-  // -> 쿼리빌더 사용시
-  // public async getTodayRoutineStatus(user_id: number) {
-  //   return await this.repository
-  //     .createQueryBuilder('routine_time')
-  //     .leftJoinAndSelect('routine_time.userRoutine', 'userRoutine')
-  //     .leftJoinAndSelect('userRoutine.routine', 'routine')
-  //     .where('routine_time.user_id = :user_id', { user_id })
-  //     .andWhere('DATE(routine_time.date) = CURDATE()')
-  //     .getMany();
-  // }
-
-  // 00시 기준 자동 실패 처리
-  public async routineFailed(user_id: number, user_routine_id: number) {
-    const today3 = new Date().toISOString().split('T')[0]!;
-    const todayDate3 = new Date(today3);
     const exist = await this.repository.findOne({
-      where: { user_id, user_routine_id, date: todayDate3 },
+      where: { user_id, user_routine_id, date: todayDate },
     });
 
     if (!exist) {
       const failedRecord = this.repository.create({
         user_id,
         user_routine_id,
-        date: todayDate3,
+        date: todayDate,
         progress: 0,
       });
       return await this.repository.save(failedRecord);
     }
+
     return exist;
   }
+
+  // 금일 루틴 상태 조회
+  public async getTodayRoutineStatus(user_id: number) {
+    const now = new Date();
+    const todayStr = new Date(now.getTime() + 9 * 60 * 60 * 1000)
+      .toISOString()
+      .split('T')[0]; // "YYYY-MM-DD"
+
+    return await this.repository
+      .createQueryBuilder('routine_time')
+      .leftJoinAndSelect('routine_time.userRoutine', 'userRoutine')
+      .leftJoinAndSelect('userRoutine.routine', 'routine')
+      .where('routine_time.user_id = :user_id', { user_id })
+      .andWhere('routine_time.date = :today', { today: todayStr })
+      .getMany();
+  }
+
+  // public async routineComplete(
+  //   user_id: number,
+  //   user_routine_id: number
+  // ): Promise<RoutineTimes> {
+  //   const today = new Date();
+  //   const todayDate1 = new Date(today.toISOString().split('T')[0] as string);
+
+  //   const existing = await this.repository.findOne({
+  //     where: { user_id, user_routine_id, date: todayDate1 },
+  //   });
+
+  //   if (existing) {
+  //     existing.progress = 100;
+  //     existing.updated_at = new Date();
+  //     return await this.repository.save(existing);
+  //   }
+
+  //   const newRecord = this.repository.create({
+  //     user_id,
+  //     user_routine_id,
+  //     date: todayDate1 as unknown as Date,
+  //     progress: 100,
+  //   });
+
+  //   return await this.repository.save(newRecord);
+  // }
+
+  // // 사용자 금일 루틴 진행 상태 조회
+  // public async getTodayRoutineStatus(user_id: number) {
+  //   const today2 = new Date().toISOString().split('T')[0];
+
+  //   return await this.repository
+  //     .createQueryBuilder('routine_time')
+  //     .leftJoinAndSelect('routine_time.userRoutine', 'userRoutine')
+  //     .leftJoinAndSelect('userRoutine.routine', 'routine')
+  //     .where('routine_time.user_id = :user_id', { user_id })
+  //     .andWhere(`DATE(routine_time.date) = :today`, { today: today2 })
+  //     .getMany();
+  // }
+
+  // // 00시 기준 자동 실패 처리
+  // public async routineFailed(user_id: number, user_routine_id: number) {
+  //   const today3 = new Date().toISOString().split('T')[0]!;
+  //   const todayDate3 = new Date(today3);
+  //   const exist = await this.repository.findOne({
+  //     where: { user_id, user_routine_id, date: todayDate3 },
+  //   });
+
+  //   if (!exist) {
+  //     const failedRecord = this.repository.create({
+  //       user_id,
+  //       user_routine_id,
+  //       date: todayDate3,
+  //       progress: 0,
+  //     });
+  //     return await this.repository.save(failedRecord);
+  //   }
+  //   return exist;
+  // }
 }

@@ -88,4 +88,17 @@ export class UserRoutineRepository {
     await this.repository.remove(userRoutines);
     return true;
   }
+
+  public async findCurrentUserRoutines(user_id: number) {
+    const today = new Date().toISOString().split('T')[0];
+    return await this.repository
+      .createQueryBuilder('user_routine')
+      .leftJoinAndSelect('user_routine.routine', 'routine')
+      .leftJoinAndSelect('routine.category', 'category')
+      .where('user_routine.user_id = :user_id', { user_id })
+      .andWhere('user_routine.start_date <= :today', { today })
+      .andWhere('user_routine.end_date >= :today', { today })
+      .orderBy('user_routine.start_date', 'DESC')
+      .getMany();
+  }
 }
