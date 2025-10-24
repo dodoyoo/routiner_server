@@ -58,14 +58,23 @@ export class UserRoutineRepository {
   // 사용자 루틴 조회
   public async findUserRoutines(user_id: number) {
     try {
+      const now = new Date();
+      const todayStr = new Date(now.getTime() + 9 * 60 * 60 * 1000)
+        .toISOString()
+        .split('T')[0];
       const routines = await this.repository
         .createQueryBuilder('user_routine')
         .leftJoinAndSelect('user_routine.routine', 'routine')
         .leftJoinAndSelect('routine.category', 'category')
+        .leftJoinAndSelect(
+          'user_routine.routineTimes',
+          'routineTime',
+          'routineTime.user_id = :user_id AND DATE(routineTime.date) = :today',
+          { user_id, today: todayStr }
+        )
         .where('user_routine.user_id = :user_id', { user_id })
         .orderBy('user_routine.start_date', 'DESC')
         .getMany();
-
       return routines;
     } catch (error) {
       console.error('루틴을 불러오는데 실패했습니다.', error);
