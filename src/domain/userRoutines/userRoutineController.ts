@@ -48,30 +48,18 @@ export class UserRoutineController {
   // 사용자 저장 루틴 불러오기
   public async getUserRoutines(req: Request, res: Response) {
     try {
-      const { user_id } = req.params;
-
-      if (!user_id) {
-        const err = new PropertyRequiredError('user_id가 필요합니다.');
-        return reportErrorMessage(err, res);
-      }
-
+      const user_id = Number(req.params.user_id);
       const routines = await this.userRoutineRepository.findUserRoutines(
-        Number(user_id)
+        user_id
       );
 
-      if (!routines || routines.length === 0) {
-        const err = new NotFoundDataError('등록된 루틴이 없습니다.');
-        return reportErrorMessage(err, res);
-      }
-
-      return res
-        .status(200)
-        .json({ message: '사용자 루틴 목록 조회 성공', data: routines });
-    } catch (error: any) {
-      if (error.statusCode) {
-        return res.status(error.statusCode).json({ message: error.message });
-      }
-      return res.status(500).json({ message: '루틴 조회 실패' });
+      return res.status(200).json({
+        message: '사용자 루틴 목록 조회 성공',
+        data: routines,
+      });
+    } catch (error) {
+      console.error('루틴 목록 조회 실패:', error);
+      return res.status(500).json({ message: 'INTERNAL_SERVER_ERROR' });
     }
   }
 
