@@ -26,4 +26,20 @@ export class StaticRoutineController {
       return res.status(500).json({ message: error.message || '서버 오류' });
     }
   }
+
+  public async getMonthlyStats(req: Request, res: Response) {
+    try {
+      const user_id = Number(req.params.user_id);
+      if (!user_id || isNaN(user_id)) {
+        return res.status(400).json({ message: '잘못된 사용자 ID입니다.' });
+      }
+      const data = await this.staticRoutineRepository.getMonthlyStats(user_id);
+
+      return res
+        .status(200)
+        .json({ message: '월간 루틴 통계 조회 성공', data });
+    } catch (err: any) {
+      return res.status(500).json({ message: err.message || '서버 오류' });
+    }
+  }
 }
