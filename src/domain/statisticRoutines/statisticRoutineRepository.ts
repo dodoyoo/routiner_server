@@ -49,7 +49,7 @@ export class StaticRoutineRepository {
   }
 
   // 지정 기간 통계 계산
-  private async computeStats(
+  public async computeStats(
     user_id: number,
     periodStart: string,
     periodEnd: string
@@ -154,6 +154,7 @@ export class StaticRoutineRepository {
       categories,
     };
   }
+
   public async getWeeklyStats(user_id: number) {
     try {
       const end = this.todayStrKST() as string;
@@ -164,6 +165,19 @@ export class StaticRoutineRepository {
     } catch (err) {
       console.error('WeeklyStats Error:', err);
       throw new Error('주간 통계 조회 중 오류가 발생하였습니다.');
+    }
+  }
+
+  public async getMonthlyStats(user_id: number) {
+    try {
+      const end = this.todayStrKST() as string;
+      const startDate = new Date(end);
+      startDate.setDate(startDate.getDate() - 29);
+      const start = this.toDateStringKST(startDate) as string;
+      return await this.computeStats(user_id, start, end);
+    } catch (err) {
+      console.error('MonthlyStats Error:', err);
+      throw new Error('월간 통계 조회 중 오류가 발생하였습니다.');
     }
   }
 }
