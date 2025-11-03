@@ -17,6 +17,9 @@ export class Routines {
   @PrimaryGeneratedColumn()
   id!: number;
 
+  @Column({ type: 'integer', nullable: false })
+  category_id!: number;
+
   @Column({ type: 'varchar', length: 200, nullable: false })
   title!: string;
 

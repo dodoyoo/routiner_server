@@ -31,21 +31,23 @@ export class StaticRoutineRepository {
   private daysInclusive(fromStr: string, toStr: string) {
     const from = new Date(fromStr);
     const to = new Date(toStr);
-    const diff = (to.getTime() - from.getTime()) / 86400000;
+    const diff = (to.getTime() - from.getTime()) / 86400000; //86400000 1d -> 1ms
     return diff + 1;
   }
 
-  // 두 구간 [A1,A2], [B1,B2]의 겹치는 부분을 'YYYY-MM-DD'로 반환 (없으면 undefined)
+  /* 두 구간 [A1,A2], [B1,B2]의 겹치는 부분을 'YYYY-MM-DD'로 반환 (없으면 undefined)
+     두 날짜 구간의 교집합(겹치는 기간)을 계산해서, 겹치면 그 구간의 start/end를 "YYYY-MM-DD" 문자열로 돌려주고
+     겹치지 않으면 undefined를 반환하는 유틸 함수 */
   private intersectRange(
     aStart: string,
     aEnd: string,
     bStart: string,
     bEnd: string
   ) {
-    const start = aStart > bStart ? aStart : bStart;
-    const end = aEnd < bEnd ? aEnd : bEnd;
-    if (start > end) return undefined;
-    return { start, end };
+    const start = aStart > bStart ? aStart : bStart; // 둘 중 더 늦게 시작한 날짜
+    const end = aEnd < bEnd ? aEnd : bEnd; // 둘 중 더 일찍 끝나는 날짜
+    if (start > end) return undefined; // 시작이 끝보다 뒤면 겹침 없음
+    return { start, end }; // 겹치는 구간 반환 (양끝 포함)
   }
 
   // 지정 기간 통계 계산
