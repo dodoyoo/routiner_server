@@ -6,6 +6,8 @@ import {
   UpdateDateColumn,
   PrimaryGeneratedColumn,
   Unique,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { User } from '../users/userEntity';
 import { UserRoutines } from '../userRoutines/userRoutineEntity';
@@ -19,7 +21,7 @@ export type CouponStatus = 'issued' | 'redeemed' | 'expired';
   'period_start',
   'period_end',
 ])
-export class Coupon {
+export class Coupons {
   @PrimaryGeneratedColumn()
   id!: number;
 
@@ -50,4 +52,12 @@ export class Coupon {
     default: () => 'CURRENT_TIMESTAMP',
   })
   updated_at!: Date;
+
+  @ManyToOne(() => User, (user) => user.coupons)
+  @JoinColumn({ name: 'user_id' })
+  user!: User;
+
+  @ManyToOne(() => UserRoutines, (userRoutine) => userRoutine.coupons)
+  @JoinColumn({ name: 'user_routine_id' })
+  userRoutines!: UserRoutines;
 }

@@ -13,6 +13,7 @@ import {
 import { User } from '../users/userEntity';
 import { Routines } from '../routines/routineEntity';
 import { RoutineTimes } from '../routineTimes/routineTimeEntity';
+import { Coupons } from '../rewards/couponEntity';
 
 @Entity('user_routines')
 export class UserRoutines {
@@ -58,4 +59,7 @@ export class UserRoutines {
 
   @OneToMany(() => RoutineTimes, (routineTime) => routineTime.userRoutine)
   routineTimes!: RoutineTimes[];
+
+  @OneToMany(() => Coupons, (coupon) => coupon.userRoutines)
+  coupons!: Coupons[];
 }

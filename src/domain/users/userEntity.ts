@@ -12,6 +12,8 @@ import {
 } from 'typeorm';
 import { RoutineTimes } from '../routineTimes/routineTimeEntity';
 import { UserRoutines } from '../userRoutines/userRoutineEntity';
+import { Coupons } from '../rewards/couponEntity';
+import { CouponRecords } from '../rewards/couponRecordEntity';
 
 @Entity('users')
 export class User {
@@ -46,4 +48,10 @@ export class User {
 
   @OneToMany(() => RoutineTimes, (routineTime) => routineTime.user)
   routineTimes!: RoutineTimes[];
+
+  @OneToMany(() => Coupons, (coupon) => coupon.user)
+  coupons!: Coupons[];
+
+  @OneToMany(() => CouponRecords, (couponRecord) => couponRecord.user)
+  couponRecords!: CouponRecords;
 }
