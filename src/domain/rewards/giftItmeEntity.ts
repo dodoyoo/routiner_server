@@ -5,7 +5,9 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
+import { CouponRecords } from './couponRecordEntity';
 
 @Entity('gift_items')
 export class GiftItems {
@@ -31,4 +33,7 @@ export class GiftItems {
     default: () => 'CURRENT_TIMESTAMP',
   })
   updated_at!: Date;
+
+  @OneToMany(() => CouponRecords, (couponRecord) => couponRecord.giftItem)
+  couponRecords!: CouponRecords;
 }

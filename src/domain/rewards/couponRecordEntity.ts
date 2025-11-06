@@ -5,10 +5,14 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { User } from '../users/userEntity';
+import { GiftItems } from './giftItmeEntity';
 
 @Entity('gift_records')
-export class GiftRecords {
+export class CouponRecords {
   @PrimaryGeneratedColumn()
   id!: number;
 
@@ -34,4 +38,12 @@ export class GiftRecords {
     default: () => 'CURRENT_TIMESTAMP',
   })
   updated_at!: Date;
+
+  @ManyToOne(() => User, (user) => user.couponRecords)
+  @JoinColumn({ name: 'user_id' })
+  user!: User;
+
+  @ManyToOne(() => GiftItems, (giftItem) => giftItem.couponRecords)
+  @JoinColumn({ name: 'gift_item_id' })
+  giftItem!: GiftItems;
 }
