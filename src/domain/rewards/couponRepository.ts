@@ -54,7 +54,7 @@ export class CouponRepository {
 
       const successRow = await this.routineTimeRepository
         .createQueryBuilder('routine_time')
-        .select('COUNT(DISTINCT routine_time.date', 'success_days')
+        .select('COUNT(DISTINCT routine_time.date)', 'success_days')
         .where('routine_time.user_id', { user_id })
         .andWhere('routine_time.user_routine_id', { user_routine_id })
         .andWhere('routine_time.progress = 100')

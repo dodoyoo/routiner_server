@@ -5,6 +5,9 @@ import { UserRoutines } from '../domain/userRoutines/userRoutineEntity';
 import { RoutineTimes } from '../domain/routineTimes/routineTimeEntity';
 import { Routines } from '../domain/routines/routineEntity';
 import { Categories } from '../domain/routines/categoryEntity';
+import { Coupons } from '../domain/rewards/couponEntity';
+import { GiftItems } from '../domain/rewards/giftItmeEntity';
+import { CouponRecords } from '../domain/rewards/couponRecordEntity';
 
 export const AppDataSource = new DataSource({
   type: 'mysql',
@@ -15,7 +18,16 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_DATABASE,
   logging: true,
   synchronize: false,
-  entities: [User, Routines, UserRoutines, RoutineTimes, Categories],
+  entities: [
+    User,
+    Routines,
+    UserRoutines,
+    RoutineTimes,
+    Categories,
+    Coupons,
+    GiftItems,
+    CouponRecords,
+  ],
   migrations: ['src/database/migrations/*.ts'],
   migrationsRun: true,
   timezone: '+09:00',
