@@ -20,6 +20,7 @@ export class CouponRepository {
     return kst.toISOString().split('T')[0];
   }
 
+  // 쿠폰 발급
   public async issueCoupon(user_id: number, user_routine_id: number) {
     try {
       const userRoutine = await this.userRoutineRepository
@@ -95,6 +96,25 @@ export class CouponRepository {
     } catch (error) {
       console.error('issueCoupon:', error);
       throw new Error('쿠폰 발급 중 오류가 발생하였습니다.');
+    }
+  }
+
+  // 쿠폰 목록
+  public async couponList(
+    user_id: number,
+    status?: 'issued' | 'redeemed' | 'expired'
+  ) {
+    try {
+      const coupons = this.couponRepository
+        .createQueryBuilder('coupon')
+        .where('coupon.user_id = :user_id', { user_id })
+        .orderBy('coupon.issued_at', 'DESC');
+
+      if (status) coupons.andWhere('coupon.status = :status', { status });
+      return await coupons.getMany();
+    } catch (err) {
+      console.error('couponList error:', err);
+      throw new Error('쿠폰 목록 조회 오류');
     }
   }
 }
