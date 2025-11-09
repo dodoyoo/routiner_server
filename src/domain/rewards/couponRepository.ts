@@ -117,4 +117,21 @@ export class CouponRepository {
       throw new Error('쿠폰 목록 조회 오류');
     }
   }
+
+  // 사용 가능 쿠폰 개수
+  public async availableCoupon(user_id: number) {
+    try {
+      const available = await this.couponRepository
+        .createQueryBuilder('count')
+        .select('COUNT(*)', 'cnt')
+        .where('count.user_id = :user_id', { user_id })
+        .andWhere('count.status = "issued"')
+        .getRawOne<{ cnt: string }>();
+
+      return Number(available?.cnt || 0);
+    } catch (err) {
+      console.error('error:', err);
+      throw new Error('쿠폰 개수 조회 오류');
+    }
+  }
 }
