@@ -9,7 +9,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { User } from '../users/userEntity';
-import { GiftItems } from './giftItmeEntity';
+import { GiftItems } from './giftItemEntity';
 
 @Entity('gift_records')
 export class CouponRecords {

@@ -6,7 +6,7 @@ import { RoutineTimes } from '../domain/routineTimes/routineTimeEntity';
 import { Routines } from '../domain/routines/routineEntity';
 import { Categories } from '../domain/routines/categoryEntity';
 import { Coupons } from '../domain/rewards/couponEntity';
-import { GiftItems } from '../domain/rewards/giftItmeEntity';
+import { GiftItems } from '../domain/rewards/giftItemEntity';
 import { CouponRecords } from '../domain/rewards/couponRecordEntity';
 
 export const AppDataSource = new DataSource({

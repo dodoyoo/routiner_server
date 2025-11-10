@@ -1,0 +1,64 @@
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"
+    />
+    <title>Routiner</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <main class="app">
+      <header class="header">
+        <h1 class="brand">Routiner</h1>
+      </header>
+
+      <section class="hero-card" aria-label="캘린더 안내">
+        <div class="emoji">📅</div>
+        <p class="hero-text">하루하루 채워보는 나의 루틴</p>
+      </section>
+
+      <section class="social">
+        <button id="googleLoginBtn" class="btn btn-google">
+          <img src="./assets/img/google.svg" alt="" class="icon" />
+          Google 로그인
+        </button>
+        <button id="kakaoLoginBtn" class="btn btn-kakao">
+          <img src="./assets/img/kakao.svg" alt="" class="icon" />
+          Kakao 로그인
+        </button>
+      </section>
+
+      <nav class="nav" aria-label="하단 네비게이션">
+        <button class="nav-item active" data-route="list">
+          <span class="nav-emoji">📋</span
+          ><span class="nav-label">루틴 목록</span>
+        </button>
+        <button class="nav-item" data-route="mine">
+          <span class="nav-emoji">✅</span
+          ><span class="nav-label">내 루틴</span>
+        </button>
+        <button class="nav-item" data-route="exchange">
+          <span class="nav-emoji">🎟️</span><span class="nav-label">교환</span>
+        </button>
+        <button class="nav-item" data-route="mypage">
+          <span class="nav-emoji">👤</span
+          ><span class="nav-label">마이페이지</span>
+        </button>
+      </nav>
+    </main>
+
+    <script>
+      window.__ROUTINER__ = {
+        GOOGLE_LOGIN_URL: '/auth/google',
+        //   KAKAO_LOGIN_URL: '/auth/kakao',
+        API_BASE: '/api',
+      };
+    </script>
+  </body>
+</html>
