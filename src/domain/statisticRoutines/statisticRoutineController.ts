@@ -1,6 +1,6 @@
 import { Response, Request } from 'express';
-import { PropertyRequiredError } from '../../utils/customError';
 import { StaticRoutineRepository } from './statisticRoutineRepository';
+import { PropertyRequiredError } from '../../utils/customError';
 import { reportErrorMessage } from '../../utils/errorHandling';
 
 export class StaticRoutineController {

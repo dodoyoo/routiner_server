@@ -31,11 +31,11 @@ export class Coupons {
   @Column({ type: 'integer', nullable: false })
   user_routine_id!: number;
 
-  @Column({ type: 'date', nullable: false })
-  period_start!: Date;
+  @Column({ type: 'date' })
+  period_start!: string;
 
-  @Column({ type: 'date', nullable: false })
-  period_end!: Date;
+  @Column({ type: 'date' })
+  period_end!: string;
 
   @Column({ type: 'varchar', length: 20, nullable: false, default: 'issued' })
   status!: CouponStatus;
