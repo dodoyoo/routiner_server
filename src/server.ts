@@ -1,14 +1,15 @@
 import 'dotenv/config';
-import { AppDataSource } from './src/models/dataSource';
+import { AppDataSource } from './models/dataSource';
 import { createApp } from './app';
-import swaggerJSDoc from 'swagger-jsdoc';
+import { createServer } from 'http';
+
 import swaggerUi from 'swagger-ui-express';
 
-const app = createApp();
+const swaggerJSDoc = require('swagger-jsdoc');
 const PORT = process.env.PORT;
 const HOST = process.env.HOST;
 
-const swaggerDefinition = {
+const definition = {
   openapi: '3.0.0',
   info: {
     title: 'Express API with Swagger',
@@ -33,17 +34,17 @@ const swaggerDefinition = {
   },
 };
 
-const options = {
-  swaggerDefinition,
-
+const swaggerSpec = swaggerJSDoc({
+  definition,
   apis: [],
-};
-const swaggerSpec = swaggerJSDoc(options);
+});
 
 (async () => {
   await AppDataSource.initialize()
     .then(() => {
       console.log('Data Source has been initialized!');
+
+      const app = createApp();
 
       app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
@@ -53,9 +54,11 @@ const swaggerSpec = swaggerJSDoc(options);
       //     next(err); -> 이부분에서 에러가 발생하면 미들웨어로 돌아가게 해야하는데 현재 나는 미들웨어를 사용하지 않기 때문에
       //   });              주석을 풀고 서버를 열었을 때 에러가 발생하는 것이다.
 
-      app.listen(PORT, async () => {
+      const server = createServer(app);
+      server.listen(PORT, async () => {
+        console.log(`🚀 Server running at http://${HOST}:${PORT}`);
         console.log(
-          `Swagger docs available at http://${HOST}:${PORT}/api-docs`
+          `📚 Swagger docs available at http://${HOST}:${PORT}/api-docs`
         );
       });
     })

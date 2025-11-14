@@ -4,7 +4,7 @@
   "description": "",
   "main": "server.ts",
   "scripts": {
-    "dev": "env-cmd -f .env.development nodemon --config nodemon.json --exec ts-node server",
+    "dev": "env-cmd -f .env.development nodemon --watch src --ext ts,js,json --exec \"ts-node --transpile-only -r tsconfig-paths/register ./src/server.ts\"",
     "seed:routines": "env-cmd -f .env.development ts-node ./src/database/seeds/routineSeed.ts",
     "typeorm": "env-cmd -f .env.development ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js --dataSource ./src/models/dataSource.ts",
     "migration:create": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:create",
