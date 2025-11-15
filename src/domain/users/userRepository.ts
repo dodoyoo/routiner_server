@@ -13,6 +13,10 @@ export class UserRepository {
     return this.repository.findOne({ where: { google_id: googleId } });
   }
 
+  async findByKakaoId(kakaoId: string) {
+    return this.repository.findOne({ where: { kakao_id: kakaoId } });
+  }
+
   async findByEmail(email: string) {
     return this.repository.findOne({ where: { email } });
   }
