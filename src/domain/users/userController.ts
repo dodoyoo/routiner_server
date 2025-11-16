@@ -85,8 +85,6 @@ export class UserController {
       redirectUri!
     )}&scope=${encodeURIComponent(scope)}`;
 
-    console.log('@@@@@@@@@@@@@@@@@@@@:   ', clientId);
-    console.log('#####################:       ', url);
     return res.redirect(url);
   }
 
