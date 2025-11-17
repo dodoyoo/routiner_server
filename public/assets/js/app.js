@@ -20,7 +20,4 @@
       console.log('route:', route);
     });
   });
-
-  // (예시) API 핑 찍어보기
-  // fetch(`${API_BASE}/health`).then(r => r.json()).then(console.log).catch(console.error);
 })();
