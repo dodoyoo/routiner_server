@@ -10,4 +10,10 @@ router.get('/google/callback', (req, res) =>
   userController.googleCallback(req, res)
 );
 
+router.get('/kakao/login', (req, res) => userController.kakaoLogin(req, res));
+
+router.get('/auth/login/kakao', (req, res) =>
+  userController.kakaoCallback(req, res)
+);
+
 export default router;

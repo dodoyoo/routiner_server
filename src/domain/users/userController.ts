@@ -72,4 +72,87 @@ export class UserController {
       return res.status(404).json({ message: '구글 로그인 실패' });
     }
   }
+
+  async kakaoLogin(req: Request, res: Response) {
+    const clientId = process.env.KAKAO_CLIENT_ID!;
+    const redirectUri = process.env.KAKAO_REDIRECT_URI!;
+
+    const scope = ['profile_nickname', 'profile_image', 'account_email'].join(
+      ' '
+    );
+
+    const url = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(
+      redirectUri!
+    )}&scope=${encodeURIComponent(scope)}`;
+
+    console.log('@@@@@@@@@@@@@@@@@@@@:   ', clientId);
+    console.log('#####################:       ', url);
+    return res.redirect(url);
+  }
+
+  async kakaoCallback(req: Request, res: Response) {
+    try {
+      const code = req.query.code as string;
+
+      const redirectUri = process.env.KAKAO_REDIRECT_URI!;
+      const clientId = process.env.KAKAO_CLIENT_ID;
+
+      if (!clientId || !redirectUri) {
+        throw new Error(
+          'KAKAO_REST_API_KEY 또는 KAKAO_REDIRECT_URI가 설정되어 있지 않습니다.'
+        );
+      }
+
+      const tokenParams = new URLSearchParams();
+      tokenParams.append('grant_type', 'authorization_code');
+      tokenParams.append('client_id', clientId);
+      tokenParams.append('redirect_uri', redirectUri);
+      tokenParams.append('code', code);
+
+      const tokenResponse = await axios.post(
+        'https://kauth.kakao.com/oauth/token',
+        tokenParams,
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
+          },
+        }
+      );
+      const { access_token } = tokenResponse.data;
+
+      // 2) 액세스 토큰으로 유저 정보 조회
+      const userInfoResponse = await axios.get(
+        'https://kapi.kakao.com/v2/user/me',
+        {
+          headers: {
+            Authorization: `Bearer ${access_token}`,
+            'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
+          },
+        }
+      );
+
+      const kakaoData = userInfoResponse.data;
+
+      const kakaoId = String(kakaoData.id);
+      const kakaoAccount = kakaoData.kakao_account || {};
+      const email = kakaoAccount.email || null;
+
+      let user = await this.userRepository.findByKakaoId(kakaoId);
+
+      if (!user) {
+        user = await this.userRepository.saveUser({
+          kakao_id: kakaoId,
+          email,
+        });
+      }
+
+      return res.json({
+        message: '카카오 로그인 성공',
+        user,
+      });
+    } catch (error) {
+      console.error('카카오 로그인 실패:', error);
+      return res.status(400).json({ message: '카카오 로그인 실패' });
+    }
+  }
 }
