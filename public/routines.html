@@ -1,0 +1,40 @@
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"
+    />
+    <title>Routiner_루틴목록</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./assets/css/routines.css" />
+  </head>
+  <body>
+    <main>
+      <header class="header" role="banner">
+        <h1 class="brand">Routiner</h1>
+        <p class="subtitle" aria-live="polite">원하는 카테고리를 선택하세요</p>
+      </header>
+      <nav id="categories" class="tabs" aria-label="카테고리"></nav>
+
+      <section
+        id="routineList"
+        class="routine-list"
+        aria-live="polite"
+      ></section>
+    </main>
+
+    <script>
+      window.__ROUTINER__ = {
+        API_BASE: '/api',
+        CATEGORY_ORDER: ['건강', '운동', '자기개발', '미용'],
+        PAGE_SIZE: 50,
+      };
+    </script>
+    <script src="./assets/js/routines.js" defer></script>
+  </body>
+</html>

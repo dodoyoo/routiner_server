@@ -8,6 +8,11 @@
   document.getElementById('kakaoLoginBtn')?.addEventListener('click', () => {
     location.href = KAKAO_LOGIN_URL || '/auth/kakao';
   });
+  document
+    .querySelector('[data-route="list"]')
+    ?.addEventListener('click', () => {
+      window.location.href = '/routines.html';
+    });
 
   const navItems = document.querySelectorAll('.nav-item');
   navItems.forEach((btn) => {
