@@ -1,0 +1,81 @@
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"
+    />
+    <title>Routiner_루틴목록</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./assets/css/routines.css" />
+  </head>
+  <body>
+    <header class="header" role="banner">
+      <h1 class="brand">Routiner</h1>
+      <p class="subtitle" aria-live="polite">원하는 카테고리를 선택하세요</p>
+    </header>
+
+    <main class="container" role="main">
+      <nav class="tabs" role="tab" aria-label="루틴 카테고리">
+        <button
+          class="tab is-active"
+          role="tab"
+          aria-selected="true"
+          aria-controls="panel-health"
+          data-category="health"
+        >
+          <span class="tab-emoji" aria-hidden="true">💪🏻</span> 건강
+        </button>
+        <button
+          class="tab"
+          role="tab"
+          aria-selected="false"
+          aria-controls="panel-fitness"
+          data-category="fitness"
+        >
+          <span class="tab-emoji" aria-hidden="true">🏃</span> 운동
+        </button>
+        <button
+          class="tab"
+          role="tab"
+          aria-selected="false"
+          aria-controls="panel-selfdev"
+          data-category="selfdev"
+        >
+          <span class="tab-emoji" aria-hidden="true">📚</span> 자기개발
+        </button>
+        <button
+          class="tab"
+          role="tab"
+          aria-selected="false"
+          aria-controls="panel-beauty"
+          data-category="beauty"
+        >
+          <span class="tab-emoji" aria-hidden="true">✨</span> 미용
+        </button>
+      </nav>
+
+      <section
+        id="routine-panel"
+        class="panel"
+        aria-live="polite"
+        aria-busy="false"
+      ></section>
+    </main>
+
+    <footer class="bottom-nav" role="navigation" aria-label="하단 내비게이션">
+      <a href="./routines.html" class="nav-item is-active" aria-current="page"
+        >루틴 목록</a
+      >
+      <a href="./my-routines.html" class="nav-item">내 루틴</a>
+      <a href="./rewards.html" class="nav-item">교환</a>
+      <a href="./mypage.html" class="nav-item">마이페이지</a>
+    </footer>
+
+    <script src="./assets/js/routines.js" defer></script>
+  </body>
+</html>
