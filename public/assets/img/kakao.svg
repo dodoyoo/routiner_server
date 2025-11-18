@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <!-- 카카오 느낌 노란 배경 -->
+  <rect x="1" y="1" width="22" height="22" rx="4" fill="#FEE500" />
+
+  <!-- 말풍선 -->
+  <g fill="#000000">
+    <!-- 말풍선 본체 -->
+    <rect x="5" y="6" width="14" height="10" rx="5" />
+    <!-- 꼬리 -->
+    <path d="M11 16 L10 19 L13 16 Z" />
+  </g>
+</svg>
