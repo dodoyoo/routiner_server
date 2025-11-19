@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import axios from 'axios';
+import jwt from 'jsonwebtoken';
+import { JwtUserPayload } from '../../utils/jwt';
 import { UserRepository } from './userRepository';
 import {
   InvalidPropertyError,
@@ -63,9 +65,19 @@ export class UserController {
         });
       }
 
+      const payload: JwtUserPayload = {
+        userId: user.id,
+        provider: 'google',
+      };
+
+      const token = jwt.sign(payload, process.env.JWT_SECRET_KEY!, {
+        expiresIn: '1h',
+      });
+
       return res.json({
         message: '구글 로그인 성공',
         user,
+        token,
       });
     } catch (error) {
       console.error('구글 로그인 실패:', error);
@@ -143,6 +155,15 @@ export class UserController {
           email,
         });
       }
+
+      const payload: JwtUserPayload = {
+        userId: user.id,
+        provider: 'kakao',
+      };
+
+      const token = jwt.sign(payload, process.env.JWT_SECRET_KEY!, {
+        expiresIn: '1h',
+      });
 
       return res.json({
         message: '카카오 로그인 성공',
