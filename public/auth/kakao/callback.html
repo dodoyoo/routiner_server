@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <title>카카오 로그인 처리 중...</title>
+  </head>
+  <body>
+    <p>카카오 로그인 처리 중입니다. 잠시만 기다려주세요...</p>
+
+    <script>
+      (async () => {
+        try {
+          const params = new URLSearchParams(window.location.search);
+          const code = params.get('code');
+
+          if (!code) {
+            document.body.innerHTML = '<h1>코드가 없습니다.</h1>';
+            return;
+          }
+
+          const res = await fetch(
+            `/kakao/callback?code=${encodeURIComponent(code)}`
+          );
+
+          if (!res.ok) {
+            const text = await res.text();
+            document.body.innerHTML =
+              '<h1>로그인 실패</h1><pre>' + (text || res.status) + '</pre>';
+            return;
+          }
+
+          const json = await res.json();
+
+          if (json.token) {
+            window.localStorage.setItem('routiner_token', json.token);
+          }
+
+          window.location.href = '/routines.html';
+        } catch (err) {
+          console.error(err);
+          document.body.innerHTML =
+            '<h1>오류가 발생했습니다.</h1><p>콘솔을 확인해주세요.</p>';
+        }
+      })();
+    </script>
+  </body>
+</html>

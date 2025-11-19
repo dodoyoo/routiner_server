@@ -14,8 +14,8 @@
     <link rel="stylesheet" href="./assets/css/routines.css" />
   </head>
   <body>
-    <main>
-      <header class="header" role="banner">
+    <main class="app">
+      <header class="header">
         <h1 class="brand">Routiner</h1>
         <p class="subtitle" aria-live="polite">원하는 카테고리를 선택하세요</p>
       </header>
@@ -26,6 +26,26 @@
         class="routine-list"
         aria-live="polite"
       ></section>
+
+      <nav class="nav" aria-label="하단 네비게이션">
+        <button class="nav-item active" data-route="list">
+          <a class="nav-item" href="./routines.html">
+            <span class="nav-emoji">📋</span
+            ><span class="nav-label">루틴 목록</span>
+          </a>
+        </button>
+        <button class="nav-item" data-route="mine">
+          <span class="nav-emoji">✅</span
+          ><span class="nav-label">내 루틴</span>
+        </button>
+        <button class="nav-item" data-route="exchange">
+          <span class="nav-emoji">🎟️</span><span class="nav-label">교환</span>
+        </button>
+        <button class="nav-item" data-route="mypage">
+          <span class="nav-emoji">👤</span
+          ><span class="nav-label">마이페이지</span>
+        </button>
+      </nav>
     </main>
 
     <script>

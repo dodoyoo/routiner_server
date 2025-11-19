@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <title>구글 로그인 처리 중...</title>
+  </head>
+  <body>
+    <p>구글 로그인 처리 중입니다. 잠시만 기다려주세요...</p>
+
+    <script>
+      (async () => {
+        try {
+          const params = new URLSearchParams(window.location.search);
+          const code = params.get('code');
+
+          if (!code) {
+            document.body.innerHTML = '<h1>코드가 없습니다.</h1>';
+            return;
+          }
+
+          // ⚠️ 여기서 백엔드의 /google/callback으로 code를 넘김 (TS 변경 X)
+          const res = await fetch(
+            `/google/callback?code=${encodeURIComponent(code)}`
+          );
+
+          if (!res.ok) {
+            const text = await res.text();
+            document.body.innerHTML =
+              '<h1>로그인 실패</h1><pre>' + (text || res.status) + '</pre>';
+            return;
+          }
+
+          const json = await res.json();
+
+          if (json.token) {
+            // ✅ JWT를 localStorage에 저장
+            window.localStorage.setItem('routiner_token', json.token);
+          } else {
+            console.warn('token이 응답에 없습니다:', json);
+          }
+
+          // ✅ 로그인 후 루틴 목록 페이지로 이동
+          window.location.href = '/routines.html';
+        } catch (err) {
+          console.error(err);
+          document.body.innerHTML =
+            '<h1>오류가 발생했습니다.</h1><p>콘솔을 확인해주세요.</p>';
+        }
+      })();
+    </script>
+  </body>
+</html>

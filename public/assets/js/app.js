@@ -3,10 +3,10 @@
     window.__ROUTINER__ || {};
 
   document.getElementById('googleLoginBtn')?.addEventListener('click', () => {
-    location.href = GOOGLE_LOGIN_URL || '/auth/google';
+    location.href = GOOGLE_LOGIN_URL || '/google/login';
   });
   document.getElementById('kakaoLoginBtn')?.addEventListener('click', () => {
-    location.href = KAKAO_LOGIN_URL || '/auth/kakao';
+    location.href = KAKAO_LOGIN_URL || '/kakao/login';
   });
   document
     .querySelector('[data-route="list"]')
