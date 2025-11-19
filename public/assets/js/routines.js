@@ -18,7 +18,21 @@
   };
 
   async function getJSON(url) {
-    const res = await fetch(url, { credentials: 'include' });
+    const token = window.localStorage.getItem('routiner_token');
+
+    const headers = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const res = await fetch(url, { credentials: 'include', headers });
+
+    if (res.status === 401) {
+      alert('로그인이 필요합니다. 로그인 페이지로 이동합니다.');
+      window.location.href = './index.html';
+      return { message: 'unauthorized', data: [] };
+    }
+
     if (res.status === 404) {
       return { message: 'not found', data: [] };
     }

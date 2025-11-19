@@ -1,61 +1,93 @@
 :root {
-  --bg: #0b0b0e;
-  --card: #15161a;
-  --muted: #9aa3af;
-  --text: #eef2ff;
+  /* 공통 톤 (style.css 기반 + routine용 색상 추가) */
+  --bg: #0b0b0f; /* 전체 배경 */
+  --card: #14141c; /* 카드/바 */
+  --text: #e9ecf1; /* 기본 텍스트 */
+  --muted: #a9b0bb; /* 서브 텍스트 */
+  --accent: #7aa2ff; /* 포커스 색 */
+  --stroke: #262837; /* 테두리 */
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+
   --brand: #7c9cff;
   --tab: #2a2c33;
   --tab-active: #3c3f49;
-  --accent: #a8ffbf;
-  --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  --highlight: #a8ffbf;
   --radius: 18px;
 }
 
 * {
   box-sizing: border-box;
 }
+
 html,
 body {
   height: 100%;
 }
+
+/* 바깥 배경 + 폰 중앙 정렬 */
 body {
   margin: 0;
   font-family: ui-sans-serif, system-ui, -apple-system, 'Pretendard', 'Segoe UI',
     Roboto, 'Helvetica Neue', Arial, 'Noto Sans KR', 'Apple SD Gothic Neo',
     'Malgun Gothic', '맑은 고딕', sans-serif;
-  background: linear-gradient(180deg, #0c0e13 0%, #0b0b0e 100%);
+  background: white;
   color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 폰 프레임 */
+.app {
+  width: 100%;
+  max-width: 420px;
+  min-height: 740px;
+  border: 1px solid var(--stroke);
+  background: linear-gradient(
+    180deg,
+    rgba(26, 30, 43, 0.85) 0%,
+    rgba(10, 11, 16, 0.95) 60%
+  );
+  border-radius: 22px;
+  box-shadow: var(--shadow);
+  padding: 20px 18px 84px; /* 하단 네비 공간 포함 */
+  position: relative;
   display: flex;
   flex-direction: column;
 }
 
+/* 헤더 영역 (폰 상단) */
 .header {
-  padding: 28px 20px 8px;
+  padding: 4px 0 8px;
   text-align: center;
 }
 .brand {
   margin: 0;
-  font-size: 28px;
-  letter-spacing: 0.5px;
+  font-size: 26px;
+  letter-spacing: 0.4px;
   background: linear-gradient(90deg, var(--brand), #b793ff);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  text-shadow: 0 2px 16px rgba(122, 162, 255, 0.25);
 }
 .subtitle {
-  margin: 0.25rem 0 0;
+  margin: 4px 0 0;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 13px;
 }
 
+/* 안쪽 컨텐츠 래퍼 */
 .container {
   width: 100%;
-  max-width: 520px;
-  margin: 0 auto;
-  padding: 16px 16px 84px;
+  margin: 10px 0 0;
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
+/* 탭 영역 */
 .tabs {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -75,7 +107,8 @@ body {
   padding: 10px 6px;
   font-size: 14px;
   cursor: pointer;
-  transition: transform 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
+  transition: transform 0.12s ease, background 0.12s ease, box-shadow 0.12s ease,
+    color 0.12s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -88,17 +121,20 @@ body {
   background: var(--tab-active);
   box-shadow: 0 6px 14px rgba(124, 156, 255, 0.25) inset,
     0 0 0 1px rgba(255, 255, 255, 0.06);
+  color: var(--highlight);
 }
 .tab-emoji {
   font-size: 16px;
 }
 
+/* 루틴 리스트 패널 */
 .panel {
   margin-top: 14px;
   display: grid;
   gap: 10px;
 }
 
+/* 루틴 카드 */
 .routine-card {
   background: var(--card);
   border-radius: 16px;
@@ -135,6 +171,7 @@ body {
   line-height: 1.35;
 }
 
+/* 루틴이 없을 때 */
 .empty {
   opacity: 0.9;
   background: linear-gradient(180deg, #121318, #101116);
@@ -145,25 +182,75 @@ body {
   color: var(--muted);
 }
 
-.bottom-nav {
-  position: sticky;
-  bottom: 0;
+/* 하단 네비 (폰 안에 붙어 있는 형태) */
+.nav {
+  position: absolute;
   left: 0;
   right: 0;
+  bottom: 0;
+  padding: 10px 16px 14px;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  background: rgba(14, 16, 22, 0.8);
   backdrop-filter: blur(8px);
-  background: rgba(10, 11, 15, 0.6);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--stroke);
+  border-bottom-left-radius: 22px;
+  border-bottom-right-radius: 22px;
 }
 .nav-item {
   text-decoration: none;
-  padding: 12px 6px;
-  text-align: center;
+  height: 54px;
+  border-radius: 12px;
+  border: 1px solid var(--stroke);
+  background: var(--card);
   color: var(--muted);
-  font-size: 13px;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease,
+    transform 0.08s ease;
 }
-.nav-item.is-active {
+.nav-item:active {
+  transform: translateY(1px);
+}
+.nav-item.active {
+  border-color: #2b385e;
   color: var(--accent);
   font-weight: 700;
+  box-shadow: inset 0 0 0 1px rgba(122, 162, 255, 0.22),
+    0 8px 20px rgba(10, 12, 18, 0.45);
+}
+.nav-emoji {
+  font-size: 18px;
+  line-height: 1;
+}
+.nav-label {
+  font-size: 12px;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 작은 기기 보정 */
+@media (max-width: 380px) {
+  .app {
+    min-height: 680px;
+    padding: 18px 14px 80px;
+  }
+  .brand {
+    font-size: 22px;
+  }
 }
