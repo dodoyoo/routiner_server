@@ -12,7 +12,7 @@ router.get('/google/callback', (req, res) =>
 
 router.get('/kakao/login', (req, res) => userController.kakaoLogin(req, res));
 
-router.get('/auth/login/kakao', (req, res) =>
+router.get('/kakao/callback', (req, res) =>
   userController.kakaoCallback(req, res)
 );
 
