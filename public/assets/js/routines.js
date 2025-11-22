@@ -145,4 +145,25 @@
   }
 
   init();
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // 기존에 루틴 목록 불러오는 코드가 여기 있을 거고, 그 아래에 추가하면 됩니다.
+
+    const routeMap = {
+      list: './routines.html',
+      mine: './my-routines.html', // 나중에 파일 만들면 그 경로로
+      exchange: './coupons.html', // 교환 페이지 경로
+      mypage: './mypage.html', // 우리가 만든 마이페이지
+    };
+
+    document.querySelectorAll('.nav .nav-item').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const route = btn.dataset.route;
+        const target = routeMap[route];
+        if (target) {
+          window.location.href = target;
+        }
+      });
+    });
+  });
 })();
