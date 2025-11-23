@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { UserController } from './userController';
+import { authMiddleware } from '../../utils/jwtAuth';
 
 const router = Router();
 const userController = new UserController();
@@ -14,6 +15,10 @@ router.get('/kakao/login', (req, res) => userController.kakaoLogin(req, res));
 
 router.get('/kakao/callback', (req, res) =>
   userController.kakaoCallback(req, res)
+);
+
+router.get('/api/users/me', authMiddleware, (req, res) =>
+  userController.getUserById(req, res)
 );
 
 export default router;
