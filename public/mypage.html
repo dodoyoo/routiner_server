@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, minimum-scale=1.0, maximum-scale=1.0"
+    />
+    <title>Routiner_마이페이지</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fronts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./assets/css/mypage.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="header" role="banner">
+        <h1 class="brand">Routiner</h1>
+        <p class="subtitle" aria-live="polite">
+          나의 정보를 한눈에 확인해보세요
+        </p>
+      </header>
+
+      <section class="profile-card" aria-label="프로필 정보">
+        <div class="profile-left">
+          <div class="avartar-wrapper">
+            <img
+              id="profileAvatar"
+              class="avatar-img"
+              src="./assets/img/mypage.png"
+              alt="프로필 이미지"
+            />
+            <button
+              class="avatar-edit"
+              type="button"
+              id="changeAvatarButton"
+              aria-label="프로필 이미지 변경"
+            >
+              변경
+            </button>
+          </div>
+        </div>
+        <div class="profile-main">
+          <p class="nickname" id="nickname">사용자 닉네임</p>
+          <p class="email" id="email">example@email.com</p>
+          <p class="meta" id="joinedAt">가입일: -</p>
+        </div>
+      </section>
+
+      <section class="coupon-card" aria-label="나의 쿠폰">
+        <div class="coupon-main">
+          <div class="coupon-header">
+            <span class="coupon-label">보유 쿠폰</span>
+            <span class="coupon-chip">ROUTINER</span>
+          </div>
+          <p class="coupon-count">
+            <span id="couponCount">0</span>
+            <span class="coupon-unit">장</span>
+          </p>
+          <p class="coupon-desc">
+            루틴을 꾸준히 완주하면 더 많은 쿠폰을 받을 수 있어요.
+          </p>
+        </div>
+        <button class="coupon-btn" type="button" id="openCouponButton">
+          쿠폰함 보기
+        </button>
+      </section>
+
+      <!-- 간단 통계 -->
+      <section class="stats" aria-label="활동 통계">
+        <h2 class="section-title">나의 루틴 현황</h2>
+        <div class="stats-grid">
+          <article class="stat-card">
+            <p class="stat-label">연속 달성</p>
+            <p class="stat-value"><span id="streakDays">0</span>일</p>
+            <p class="stat-sub">어제도 성공하셨나요?</p>
+          </article>
+
+          <article class="stat-card">
+            <p class="stat-label">완료 루틴</p>
+            <p class="stat-value"><span id="completedCount">0</span>개</p>
+            <p class="stat-sub">작은 완주가 모여 습관이 됩니다.</p>
+          </article>
+
+          <article class="stat-card">
+            <p class="stat-label">진행 중 루틴</p>
+            <p class="stat-value"><span id="activeCount">0</span>개</p>
+            <p class="stat-sub">오늘도 하나씩 채워보세요.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- 설정 / 기타 메뉴 -->
+      <section class="settings" aria-label="설정 메뉴">
+        <h2 class="section-title">계정 & 설정</h2>
+        <div class="setting-list">
+          <button class="setting-item" type="button" data-action="edit-profile">
+            <span>프로필 수정</span>
+            <span class="setting-chevron">›</span>
+          </button>
+          <button class="setting-item" type="button" data-action="notification">
+            <span>알림 설정</span>
+            <span class="setting-chevron">›</span>
+          </button>
+          <button class="setting-item" type="button" data-action="help">
+            <span>도움말 & 문의</span>
+            <span class="setting-chevron">›</span>
+          </button>
+          <button
+            class="setting-item setting-item-danger"
+            type="button"
+            data-action="logout"
+          >
+            <span>로그아웃</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- 하단 네비게이션 -->
+      <nav class="nav" aria-label="하단 메뉴">
+        <button class="nav-item" data-target="./routines.html">
+          <span class="nav-emoji">📋</span>
+          <span class="nav-label">루틴 목록</span>
+        </button>
+        <button class="nav-item" data-target="./my-routines.html">
+          <span class="nav-emoji">✅</span>
+          <span class="nav-label">내 루틴</span>
+        </button>
+        <button class="nav-item" data-target="./coupons.html">
+          <span class="nav-emoji">🎫</span>
+          <span class="nav-label">교환</span>
+        </button>
+        <button class="nav-item active" data-target="./mypage.html">
+          <span class="nav-emoji">👤</span>
+          <span class="nav-label">마이페이지</span>
+        </button>
+      </nav>
+    </main>
+    <script>
+      window.__ROUTINER__ = {
+        API_BASE: '/api',
+      };
+    </script>
+    <script src="./assets/js/mypage.js" defer></script>
+  </body>
+</html>
