@@ -1,5 +1,6 @@
 (function () {
-  const { API_BASE = '/api' } = window.__ROUTINER__ || {};
+  const API_BASE = window.__ROUTINER__?.API_BASE || '/api';
+  const PROFILE_ENDPOINT = `${API_BASE}/users/me`;
 
   const $ = (selector) => document.querySelector(selector);
 

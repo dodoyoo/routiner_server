@@ -1,6 +1,7 @@
 import { Repository } from 'typeorm';
 import { AppDataSource } from '../../models/dataSource';
 import { User } from './userEntity';
+import { Coupons } from '../rewards/couponEntity';
 
 export class UserRepository {
   private repository: Repository<User>;
@@ -24,5 +25,19 @@ export class UserRepository {
   async saveUser(userData: Partial<User>) {
     const user = this.repository.create(userData);
     return this.repository.save(user);
+  }
+
+  async getUserById(userId: number): Promise<User | null> {
+    try {
+      const user = await this.repository.findOne({
+        where: { id: userId },
+        relations: ['coupons', 'userRoutines', 'userRoutines.routineTimes'],
+      });
+
+      return user;
+    } catch (error) {
+      console.error('getUserById 실패', error);
+      throw error;
+    }
   }
 }

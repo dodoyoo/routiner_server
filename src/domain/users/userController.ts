@@ -7,6 +7,7 @@ import {
   InvalidPropertyError,
   PropertyRequiredError,
 } from '../../utils/customError';
+import { reportErrorMessage } from '../../utils/errorHandling';
 
 export class UserController {
   private userRepository: UserRepository;
@@ -172,6 +173,52 @@ export class UserController {
     } catch (error) {
       console.error('카카오 로그인 실패:', error);
       return res.status(400).json({ message: '카카오 로그인 실패' });
+    }
+  }
+
+  public async getUserById(req: Request, res: Response) {
+    try {
+      const userId = req.user?.userId;
+
+      if (!userId) {
+        return res.status(400).json({ message: 'userId가 필요합니다' });
+      }
+
+      const user = await this.userRepository.getUserById(userId);
+      if (!user) {
+        return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+      }
+
+      const couponCount = user.coupons ? user?.coupons.length : 0;
+
+      const userRoutines = user.userRoutines || [];
+
+      const completedRoutineCount = userRoutines.filter(
+        (ur) => ur.is_active
+      ).length;
+
+      const activeRoutineCount = userRoutines.filter(
+        (ur) => ur.is_active
+      ).length;
+
+      const streakDays = 0;
+
+      return res.status(200).json({
+        message: '마이페이지 불러오기 성공',
+        data: {
+          id: user.id,
+          email: user.email,
+          nickname: user.nickname,
+          profileImageUrl: user.profile_image_url,
+          couponCount,
+          streakDays,
+          completedRoutineCount,
+          activeRoutineCount,
+          createdAt: user.created_at,
+        },
+      });
+    } catch (err: unknown) {
+      return reportErrorMessage(err, res);
     }
   }
 }
