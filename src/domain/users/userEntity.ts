@@ -23,6 +23,9 @@ export class User {
   @Column({ type: 'varchar', length: 250, nullable: true })
   email!: string;
 
+  @Column({ type: 'varchar', length: 200, nullable: false })
+  password!: string;
+
   @Column({ type: 'varchar', length: 200, nullable: true })
   google_id!: string;
 
