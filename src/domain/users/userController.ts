@@ -32,8 +32,14 @@ export class UserController {
 
   async googleCallback(req: Request, res: Response) {
     try {
-      const code = req.query.code as string;
+      const code = req.query.code as string | undefined;
 
+      if (!code) {
+        console.error('구글 콜백에 Code가 없습니다.', req.query);
+        return res
+          .status(400)
+          .json({ message: 'code 쿼리 파라미터가 없습니다.' });
+      }
       const tokenResponse = await axios.post(
         'https://oauth2.googleapis.com/token',
         {
@@ -208,8 +214,8 @@ export class UserController {
         data: {
           id: user.id,
           email: user.email,
-          nickname: user.nickname,
-          profileImageUrl: user.profile_image_url,
+          // nickname: user.nickname,
+          // profileImageUrl: user.profile_image_url,
           couponCount,
           streakDays,
           completedRoutineCount,
