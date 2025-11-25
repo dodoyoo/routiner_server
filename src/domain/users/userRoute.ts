@@ -21,6 +21,6 @@ router.get('/api/users/me', authMiddleware, (req, res) =>
   userController.getUserById(req, res)
 );
 
-router.get('/api/sign-in', (req, res) => userController.testSignIn(req, res));
+router.post('/api/sign-in', (req, res) => userController.testSignIn(req, res));
 
 export default router;
