@@ -18,24 +18,22 @@
             return;
           }
 
+          // ⚠️ 여기서 백엔드의 /google/callback으로 code를 넘김 (TS 변경 X)
           const res = await fetch(
-            `/kakao/callback?code=${encodeURIComponent(code)}`
+            `/google/callback?code=${encodeURIComponent(code)}`
           );
-
-          if (!res.ok) {
-            const text = await res.text();
-            document.body.innerHTML =
-              '<h1>로그인 실패</h1><pre>' + (text || res.status) + '</pre>';
-            return;
-          }
 
           const json = await res.json();
 
           if (json.token) {
+            // ✅ JWT를 localStorage에 저장
             window.localStorage.setItem('routiner_token', json.token);
+          } else {
+            console.warn('token이 응답에 없습니다:', json);
           }
 
-          window.location.href = '/routines.html';
+          // ✅ 로그인 후 루틴 목록 페이지로 이동
+          window.location.href = '/mypage.html';
         } catch (err) {
           console.error(err);
           document.body.innerHTML =

@@ -14,6 +14,13 @@
       window.location.href = '/routines.html';
     });
 
+  const routeToPath = {
+    list: './routines.html',
+    mine: './mine.html', // 나중에 만들 페이지 경로에 맞게 수정
+    exchange: './exchange.html',
+    mypage: './mypage.html',
+  };
+
   const navItems = document.querySelectorAll('.nav-item');
   navItems.forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -21,8 +28,13 @@
       btn.classList.add('active');
 
       const route = btn.getAttribute('data-route');
+      const target = route && routeToPath[route];
       // 라우트별 컨텐츠 스위칭(필요 시 구현)
       console.log('route:', route);
+
+      if (target) {
+        window.location.href = target;
+      }
     });
   });
   // ===== 일반 로그인 폼 처리 =====
@@ -69,7 +81,6 @@
         return;
       }
 
-      // 도팔님이 만든 signIn 응답 형식에 맞춰 토큰 저장
       // 예: { user: { token, email } }
       const token = data.user?.token || data.token;
       if (token) {
@@ -81,7 +92,7 @@
 
       // 성공 후 루틴 페이지로 이동
       setTimeout(() => {
-        window.location.href = '/routines.html';
+        window.location.href = '/mypage.html';
       }, 600);
     } catch (error) {
       console.error(error);

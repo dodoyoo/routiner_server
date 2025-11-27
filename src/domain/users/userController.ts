@@ -80,7 +80,7 @@ export class UserController {
         }
       );
 
-      const { id, email } = userInfoResponse.data;
+      const { id, email, name, picture } = userInfoResponse.data;
 
       let user = await this.userRepository.findByGoogleId(id);
 
@@ -88,7 +88,25 @@ export class UserController {
         user = await this.userRepository.saveUser({
           google_id: id,
           email,
+          nickname: name,
+          profile_image_url: picture,
         });
+      } else {
+        let needSave = false;
+
+        if (!user.nickname && name) {
+          user.nickname = name;
+          needSave = true;
+        }
+
+        if (!user.profile_image_url && picture) {
+          user.profile_image_url = picture;
+          needSave = true;
+        }
+
+        if (needSave) {
+          user = await this.userRepository.saveUser(user);
+        }
       }
 
       const payload: JwtUserPayload = {
@@ -102,8 +120,14 @@ export class UserController {
 
       return res.json({
         message: '구글 로그인 성공',
-        user,
         token,
+        user: {
+          id: user.id,
+          email: user.email,
+          nickname: user.nickname,
+          profileImageUrl: user.profile_image_url,
+          createAt: user.created_at,
+        },
       });
     } catch (error) {
       console.error('구글 로그인 실패:', error);
@@ -233,8 +257,8 @@ export class UserController {
         data: {
           id: user.id,
           email: user.email,
-          // nickname: user.nickname,
-          // profileImageUrl: user.profile_image_url,
+          nickname: user.nickname,
+          profileImageUrl: user.profile_image_url,
           couponCount,
           streakDays,
           completedRoutineCount,
@@ -285,10 +309,45 @@ export class UserController {
         user: {
           token,
           email: user.email,
+          nickname: user.nickname,
+          profileImageUrl: user.profile_image_url,
         },
       });
     } catch (err: unknown) {
       return reportErrorMessage(err, res);
+    }
+  }
+
+  async getMyProfile(req: Request, res: Response) {
+    try {
+      const userPayload = req.user as JwtUserPayload;
+      const userId = userPayload.userId;
+
+      const user = await this.userRepository.getUserById(userId);
+      if (!user) {
+        return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+      }
+
+      // 필요하면 쿠폰/루틴 카운트 추가
+      const couponCount = user.coupons?.length ?? 0;
+      const completedRoutineCount =
+        user.userRoutines?.filter((r) => r.is_active === true).length ?? 0;
+      const activeRoutineCount =
+        user.userRoutines?.filter((r) => r.is_active === false).length ?? 0;
+
+      return res.json({
+        id: user.id,
+        email: user.email,
+        nickname: user.nickname,
+        profileImageUrl: user.profile_image_url,
+        couponCount,
+        completedRoutineCount,
+        activeRoutineCount,
+        createdAt: user.created_at,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: '서버 에러' });
     }
   }
 }

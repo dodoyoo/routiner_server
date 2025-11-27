@@ -23,13 +23,6 @@
             `/google/callback?code=${encodeURIComponent(code)}`
           );
 
-          if (!res.ok) {
-            const text = await res.text();
-            document.body.innerHTML =
-              '<h1>로그인 실패</h1><pre>' + (text || res.status) + '</pre>';
-            return;
-          }
-
           const json = await res.json();
 
           if (json.token) {
@@ -40,7 +33,7 @@
           }
 
           // ✅ 로그인 후 루틴 목록 페이지로 이동
-          window.location.href = '/routines.html';
+          window.location.href = '/mypage.html';
         } catch (err) {
           console.error(err);
           document.body.innerHTML =

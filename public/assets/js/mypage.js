@@ -4,11 +4,33 @@
 
   const $ = (selector) => document.querySelector(selector);
 
+  function requireAuth() {
+    const token = window.localStorage.getItem('routiner_token');
+    if (!token) {
+      alert('로그인이 필요합니다.');
+      window.location.href = './index.html';
+      return null;
+    }
+    return token;
+  }
+
   async function fetchProfile() {
+    const token = requireAuth();
+    if (!token) return;
     try {
       const response = await fetch(PROFILE_ENDPOINT, {
-        credentials: 'include',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
+
+      if (response.status === 401 || response.status === 403) {
+        // 토큰 만료 등
+        window.localStorage.removeItem('routiner_token');
+        alert('로그인이 만료되었습니다. 다시 로그인해 주세요.');
+        window.location.href = './index.html';
+        return;
+      }
 
       if (!response.ok) {
         throw new Error('Failed to fetch profile');
@@ -74,9 +96,16 @@
 
   function setupNav() {
     const navItems = document.querySelectorAll('.nav-item[data-target]');
+    const routeToPath = {
+      list: './routines.html',
+      mine: './mine.html',
+      exchange: './exchange.html',
+      mypage: './mypage.html',
+    };
     navItems.forEach((item) => {
       item.addEventListener('click', () => {
-        const target = item.getAttribute('data-target');
+        const key = item.getAttribute('data-target');
+        const target = key && routeToPath[key];
         if (target) {
           window.location.href = target;
         }
