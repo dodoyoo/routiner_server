@@ -23,11 +23,20 @@ export class User {
   @Column({ type: 'varchar', length: 250, nullable: true })
   email!: string;
 
+  @Column({ type: 'varchar', length: 200, nullable: false })
+  password!: string;
+
   @Column({ type: 'varchar', length: 200, nullable: true })
   google_id!: string;
 
   @Column({ type: 'varchar', length: 200, nullable: true })
   kakao_id!: string;
+
+  // @Column({ type: 'varchar', length: 80, nullable: true })
+  // nickname!: string;
+
+  // @Column({ type: 'varchar', length: 500, nullable: true })
+  // profile_image_url!: string | null;
 
   @CreateDateColumn({
     type: 'timestamp',
