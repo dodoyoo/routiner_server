@@ -3,6 +3,15 @@ import { AppDataSource } from '../../models/dataSource';
 import { User } from './userEntity';
 import { Coupons } from '../rewards/couponEntity';
 
+type CreateUserDto = {
+  email?: string;
+  password?: string;
+  google_id?: string;
+  kakao_id?: string;
+  nickname?: string | null;
+  profile_image_url?: string | null;
+};
+
 export class UserRepository {
   private repository: Repository<User>;
 
