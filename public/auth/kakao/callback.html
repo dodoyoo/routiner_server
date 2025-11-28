@@ -18,9 +18,8 @@
             return;
           }
 
-          // ⚠️ 여기서 백엔드의 /google/callback으로 code를 넘김 (TS 변경 X)
           const res = await fetch(
-            `/google/callback?code=${encodeURIComponent(code)}`
+            `/kakao/callback?code=${encodeURIComponent(code)}`
           );
 
           const json = await res.json();

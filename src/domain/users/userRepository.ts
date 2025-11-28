@@ -19,11 +19,11 @@ export class UserRepository {
     this.repository = dataSource.getRepository(User);
   }
 
-  async findByGoogleId(googleId: string) {
+  async findByGoogleId(googleId: string): Promise<User | null> {
     return this.repository.findOne({ where: { google_id: googleId } });
   }
 
-  async findByKakaoId(kakaoId: string) {
+  async findByKakaoId(kakaoId: string): Promise<User | null> {
     return this.repository.findOne({ where: { kakao_id: kakaoId } });
   }
 

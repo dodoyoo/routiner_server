@@ -88,6 +88,7 @@ export class UserController {
         user = await this.userRepository.saveUser({
           google_id: id,
           email,
+          password: '',
           nickname: name,
           profile_image_url: picture,
         });
@@ -196,6 +197,9 @@ export class UserController {
       const kakaoId = String(kakaoData.id);
       const kakaoAccount = kakaoData.kakao_account || {};
       const email = kakaoAccount.email || null;
+      const profile = kakaoAccount.profile || {};
+      const nickname = profile.nickname || null;
+      const profileImageUrl = profile.profile_image_url || null;
 
       let user = await this.userRepository.findByKakaoId(kakaoId);
 
@@ -203,6 +207,9 @@ export class UserController {
         user = await this.userRepository.saveUser({
           kakao_id: kakaoId,
           email,
+          password: '',
+          nickname,
+          profile_image_url: profileImageUrl,
         });
       }
 
@@ -212,62 +219,23 @@ export class UserController {
       };
 
       const token = jwt.sign(payload, process.env.JWT_SECRET_KEY!, {
-        expiresIn: '1h',
+        expiresIn: '7d',
       });
 
       return res.json({
         message: '카카오 로그인 성공',
-        user,
-      });
-    } catch (error) {
-      console.error('카카오 로그인 실패:', error);
-      return res.status(400).json({ message: '카카오 로그인 실패' });
-    }
-  }
-
-  public async getUserById(req: Request, res: Response) {
-    try {
-      const userId = req.user?.userId;
-
-      if (!userId) {
-        return res.status(400).json({ message: 'userId가 필요합니다' });
-      }
-
-      const user = await this.userRepository.getUserById(userId);
-      if (!user) {
-        return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
-      }
-
-      const couponCount = user.coupons ? user?.coupons.length : 0;
-
-      const userRoutines = user.userRoutines || [];
-
-      const completedRoutineCount = userRoutines.filter(
-        (ur) => ur.is_active
-      ).length;
-
-      const activeRoutineCount = userRoutines.filter(
-        (ur) => ur.is_active
-      ).length;
-
-      const streakDays = 0;
-
-      return res.status(200).json({
-        message: '마이페이지 불러오기 성공',
-        data: {
+        token,
+        user: {
           id: user.id,
           email: user.email,
           nickname: user.nickname,
           profileImageUrl: user.profile_image_url,
-          couponCount,
-          streakDays,
-          completedRoutineCount,
-          activeRoutineCount,
           createdAt: user.created_at,
         },
       });
-    } catch (err: unknown) {
-      return reportErrorMessage(err, res);
+    } catch (error) {
+      console.error('카카오 로그인 실패:', error);
+      return res.status(400).json({ message: '카카오 로그인 실패' });
     }
   }
 
