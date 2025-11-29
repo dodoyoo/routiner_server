@@ -1,0 +1,173 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, minimum-scale=1.0, maximum-scale=1.0"
+    />
+    <title>Routiner_내 루틴</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fronts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./assets/css/mine.css" />
+  </head>
+  <body>
+    <body>
+        <main class="app">
+          <!-- 상단 헤더 -->
+          <header class="header" role="banner">
+            <h1 class="brand">Routiner</h1>
+            <p class="subtitle" aria-live="polite">
+              오늘 진행 중인 나의 루틴을 확인해보세요
+            </p>
+          </header>
+    
+          <!-- 요약 카드 -->
+          <section class="summary-card" aria-label="루틴 요약">
+            <div class="summary-item">
+              <p class="summary-label">전체 루틴</p>
+              <p class="summary-value"><span id="totalRoutines">0</span>개</p>
+            </div>
+            <div class="summary-item">
+              <p class="summary-label">진행 중</p>
+              <p class="summary-value summary-accent">
+                <span id="activeRoutines">0</span>개
+              </p>
+            </div>
+            <div class="summary-item">
+              <p class="summary-label">완료</p>
+              <p class="summary-value summary-success">
+                <span id="completedRoutines">0</span>개
+              </p>
+            </div>
+          </section>
+    
+          <!-- 필터 바 -->
+          <section class="filter-bar" aria-label="루틴 필터">
+            <div class="filter-tabs" role="tablist">
+              <button
+                class="filter-tab active"
+                type="button"
+                data-filter="all"
+                role="tab"
+              >
+                전체
+              </button>
+              <button
+                class="filter-tab"
+                type="button"
+                data-filter="ACTIVE"
+                role="tab"
+              >
+                진행 중
+              </button>
+              <button
+                class="filter-tab"
+                type="button"
+                data-filter="COMPLETED"
+                role="tab"
+              >
+                완료
+              </button>
+              <button
+                class="filter-tab"
+                type="button"
+                data-filter="PAUSED"
+                role="tab"
+              >
+                잠시 쉼
+              </button>
+            </div>
+            <div class="filter-meta">
+              <span class="today-chip" id="todayText">오늘</span>
+            </div>
+          </section>
+    
+          <!-- 루틴 리스트 -->
+          <section class="routine-section" aria-label="내 루틴 목록">
+            <div class="routine-header">
+              <h2 class="section-title">내 루틴</h2>
+              <button
+                class="routine-add-btn"
+                type="button"
+                id="addRoutineButton"
+              >
+                + 루틴 추가
+              </button>
+            </div>
+    
+            <ul class="routine-list" id="routineList">
+              <!-- JS에서 루틴 카드가 여기에 렌더링됩니다. -->
+              <!-- 예시 형태:
+              <li class="routine-item">
+                ...
+              </li>
+              -->
+            </ul>
+
+            <!-- 🧩 루틴 아이템 템플릿 (화면에는 안 보임) -->
+<template id="routineItemTemplate">
+    <li class="routine-item">
+      <div class="routine-top">
+        <div>
+          <p class="routine-title"></p>
+          <p class="routine-time"></p>
+          <div class="routine-tags"></div>
+        </div>
+        <span class="routine-status-badge"></span>
+      </div>
+  
+      <div class="routine-progress-row">
+        <div class="progress-track">
+          <div class="progress-bar"></div>
+        </div>
+        <span class="progress-label"></span>
+      </div>
+  
+      <div class="routine-bottom">
+        <p class="routine-note"></p>
+        <div class="routine-actions">
+          <button class="routine-btn primary" data-action="complete">
+            완료
+          </button>
+          <button class="routine-btn" data-action="reset">다시 시작</button>
+        </div>
+      </div>
+    </li>
+  </template>
+    
+            <p class="empty-text" id="emptyRoutineText" hidden>
+              아직 등록된 루틴이 없습니다. 새로운 루틴을 추가해볼까요?
+            </p>
+          </section>
+    
+          <!-- 하단 네비게이션 -->
+          <nav class="nav" aria-label="하단 네비게이션">
+            <button class="nav-item" data-target="list">
+              <span class="nav-emoji">📋</span>
+              <span class="nav-label">루틴 목록</span>
+            </button>
+            <button class="nav-item active" data-target="mine">
+              <span class="nav-emoji">✅</span>
+              <span class="nav-label">내 루틴</span>
+            </button>
+            <button class="nav-item" data-target="exchange">
+              <span class="nav-emoji">🎫</span>
+              <span class="nav-label">교환</span>
+            </button>
+            <button class="nav-item" data-target="mypage">
+              <span class="nav-emoji">👤</span>
+              <span class="nav-label">마이페이지</span>
+            </button>
+          </nav>
+        </main>
+        <script>
+          window.__ROUTINER__ = {
+            API_BASE: '/api',
+          };
+        </script>
+        <script src="./assets/js/mine.js" defer></script>
+      </body>
+    </html>
