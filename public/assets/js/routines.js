@@ -151,7 +151,7 @@
 
     const routeMap = {
       list: './routines.html',
-      mine: './my-routines.html', // 나중에 파일 만들면 그 경로로
+      mine: './mine.html', // 나중에 파일 만들면 그 경로로
       exchange: './coupons.html', // 교환 페이지 경로
       mypage: './mypage.html', // 우리가 만든 마이페이지
     };
