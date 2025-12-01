@@ -1,6 +1,5 @@
 (function () {
   const API_BASE = window.__ROUTINER__?.API_BASE || '/api';
-  const ROUTINE_ENDPOINT = `${API_BASE}/user-routines`; // 실제 엔드포인트에 맞게 수정
 
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => document.querySelectorAll(selector);
@@ -13,6 +12,36 @@
       return null;
     }
     return token;
+  }
+
+  function parseJwt(token) {
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) return null;
+
+      const base64Url = parts[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        window
+          .atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+
+      return JSON.parse(jsonPayload);
+    } catch (e) {
+      console.error('JWT 파싱 실패', e);
+      return null;
+    }
+  }
+
+  function getUserIdFromToken() {
+    const token = window.localStorage.getItem('routiner_token');
+    if (!token) return null;
+
+    const payload = parseJwt(token);
+    return payload?.userId ?? null;
   }
 
   function formatToday() {
