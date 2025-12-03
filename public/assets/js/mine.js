@@ -88,8 +88,15 @@
     const li = document.createElement('li');
     li.className = 'routine-item';
 
-    const { title, description, status, progressPercent, timeText, tags } =
-      routine;
+    const {
+      title,
+      description,
+      status,
+      progressPercent,
+      timeText,
+      tags,
+      completedToday,
+    } = routine;
 
     // 상단 영역
     const top = document.createElement('div');
@@ -150,14 +157,13 @@
 
     const bar = document.createElement('div');
     bar.className = 'progress-bar';
-    const pct = progressPercent ?? 0;
-    bar.style.width = `${pct}%`;
+    bar.style.width = `${progressPercent ?? 0}%`;
 
     track.appendChild(bar);
 
     const progressLabel = document.createElement('span');
     progressLabel.className = 'progress-label';
-    progressLabel.textContent = `${pct}%`;
+    progressLabel.textContent = `${progressPercent ?? 0}%`;
 
     progressRow.appendChild(track);
     progressRow.appendChild(progressLabel);
@@ -181,6 +187,11 @@
     resetBtn.className = 'routine-btn';
     resetBtn.textContent = '다시 시작';
 
+    if (completedToday) {
+      completeBtn.disabled = true;
+      completeBtn.textContent = '오늘 완료함';
+    }
+
     if (status === 'COMPLETED') {
       completeBtn.style.display = 'none';
       resetBtn.style.display = 'inline-flex';
@@ -190,7 +201,7 @@
     }
 
     completeBtn.addEventListener('click', () => {
-      alert('완료 처리 API를 연동해주세요 🙂');
+      handleCompleteRoutine(routine, li, completeBtn);
     });
 
     resetBtn.addEventListener('click', () => {
@@ -260,9 +271,6 @@
         `${API_BASE}/user-routines/${userId}`,
         window.location.origin
       );
-      //   if (statusFilter && statusFilter !== 'all') {
-      //     url.searchParams.set('status', statusFilter);
-      //   }
 
       const res = await fetch(url.toString(), {
         headers: {
@@ -272,11 +280,6 @@
         cache: 'no-store',
       });
 
-      if (res.status === 304) {
-        console.log('루틴 응답 304여서 이전 데이터 유지');
-        return;
-      }
-
       if (!res.ok) {
         throw new Error(`Failed to fetch routines: ${res.status}`);
       }
@@ -284,28 +287,37 @@
       const json = await res.json();
       console.log('루틴 API 응답:', json);
 
-      const data = json.data || json.routines || json || [];
-      // 예상 형태: [{ id, title, status, progressPercent, ... }, ...]
+      const data = json.data || [];
 
-      const routines = data.map((r) => ({
-        id: r.id,
-        title: r.routine?.title || r.routine?.name || '이름 없는 루틴',
-        description: r.routine?.description || r.memo || '',
-        status: r.status || 'ACTIVE',
-        progressPercent: r.progressPercent ?? r.progress ?? 0,
-        timeText: r.routineTimes?.[0]
-          ? new Date(r.routineTimes[0].date).toLocaleTimeString('ko-KR', {
-              hour: '2-digit',
-              minute: '2-digit',
-            })
-          : '',
-        tags: r.routine?.category ? [r.routine.category.name] : [],
-      }));
+      const routines = data.map((r) => {
+        const rt = (r.routineTimes && r.routineTimes[0]) || null;
+        const todayProgress = rt?.progress ?? 0;
+        const completedToday = todayProgress >= 100;
+
+        const totalDays = 7;
+        const percent = completedToday ? 100 : 0;
+
+        return {
+          id: r.id,
+          title: r.routine?.title || r.routine?.name || '이름 없는 루틴',
+          description: r.routine?.description || '',
+          status: r.is_active ? 'ACTIVE' : 'PAUSED',
+          progressPercent: percent,
+          completedToday,
+          timeText: rt
+            ? new Date(rt.date).toLocaleTimeString('ko-KR', {
+                hour: '2-digit',
+                minute: '2-digit',
+              })
+            : '',
+          tags: r.routine?.category ? [r.routine.category.name] : [],
+        };
+      });
 
       renderRoutines(routines);
       updateSummary(routines);
     } catch (err) {
-      console.error(err);
+      console.error('루틴 목록 조회 실패: ', err);
       renderRoutines([]);
     }
   }
@@ -318,6 +330,72 @@
       // TODO: 루틴 생성 페이지 또는 모달 연결
       alert('루틴 추가 화면으로 이동하도록 연결해주세요 🙂');
     });
+  }
+
+  async function handleCompleteRoutine(routine, li, completeBtn) {
+    const token = window.localStorage.getItem('routiner_token');
+    if (!token) {
+      alert('로그인이 필요합니다.');
+      window.location.href = './index.html';
+      return;
+    }
+
+    const userId = getUserIdFromToken();
+    if (!userId) {
+      alert('유저 정보를 불러올 수 없습니다. 다시 로그인해 주세요');
+      window.localStorage.removeItem('routiner_token');
+      window.location.href = './index.html';
+      return;
+    }
+
+    const user_routine_id = routine.id;
+
+    try {
+      completeBtn.disabled = true;
+      completeBtn.textContent = '처리 중 ...';
+
+      const res = await fetch('/api/routine-time/complete', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_routine_id,
+        }),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.error('루틴 완료 API 실패', text);
+        alert('루틴 완료 처리 중 오류가 발생했습니다.');
+        completeBtn.disabled = false;
+        completeBtn.textContent = '완료';
+        return;
+      }
+
+      const json = await res.json();
+      console.log('루틴 완료 API 응답: ', json);
+
+      const progressBar = li.querySelector('.progress-bar');
+      const progressLabel = li.querySelector('.progress-label');
+
+      if (progressBar) {
+        progressBar.style.width = '100%';
+      }
+
+      if (progressLabel) {
+        progressLabel.textContent = '100%';
+      }
+
+      completeBtn.disabled = true;
+      completeBtn.textContent = '오늘 완료함';
+    } catch (e) {
+      console.error('루틴 완료 처리 중 예외 발생: ', e);
+      alert('루틴 완료 처리 중 오류가 발생했습니다.');
+      completeBtn.disabled = false;
+      completeBtn.textContent = '완료';
+    }
   }
 
   document.addEventListener('DOMContentLoaded', () => {
