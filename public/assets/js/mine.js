@@ -87,6 +87,7 @@
   function buildRoutineItem(routine) {
     const li = document.createElement('li');
     li.className = 'routine-item';
+    li.dataset.routineId = String(routine.id);
 
     const {
       title,
@@ -95,6 +96,8 @@
       progressPercent,
       timeText,
       tags,
+      completedDays,
+      totalDays,
       completedToday,
     } = routine;
 
@@ -163,7 +166,9 @@
 
     const progressLabel = document.createElement('span');
     progressLabel.className = 'progress-label';
-    progressLabel.textContent = `${progressPercent ?? 0}%`;
+    progressLabel.textContent = `${
+      progressPercent ?? 0
+    }% (${completedDays}/${totalDays}일)`;
 
     progressRow.appendChild(track);
     progressRow.appendChild(progressLabel);
@@ -289,13 +294,32 @@
 
       const data = json.data || [];
 
-      const routines = data.map((r) => {
-        const rt = (r.routineTimes && r.routineTimes[0]) || null;
-        const todayProgress = rt?.progress ?? 0;
-        const completedToday = todayProgress >= 100;
+      const todayStr = new Date().toISOString().split('T')[0];
+      const TOTAL_DAYS = 7;
 
-        const totalDays = 7;
-        const percent = completedToday ? 100 : 0;
+      const routines = data.map((r) => {
+        const routineTimes = r.routineTimes || [];
+        const completedDays = routineTimes.filter(
+          (rt) => rt.progress >= 100
+        ).length;
+
+        const percent = Math.min(
+          100,
+          Math.round((completedDays / TOTAL_DAYS) * 100)
+        );
+
+        const completedToday = routineTimes.some((rt) => {
+          const dateStr = new Date(rt.date).toISOString().split('T')[0];
+          return dateStr === todayStr && rt.progress >= 100;
+        });
+
+        const latestTime = routineTimes[0];
+        const timeText = latestTime
+          ? new Date(latestTime.date).toLocaleDateString('ko-KR', {
+              hour: '2-digit',
+              minute: '2-digit',
+            })
+          : '';
 
         return {
           id: r.id,
@@ -303,13 +327,10 @@
           description: r.routine?.description || '',
           status: r.is_active ? 'ACTIVE' : 'PAUSED',
           progressPercent: percent,
+          completedDays,
+          totalDays: TOTAL_DAYS,
           completedToday,
-          timeText: rt
-            ? new Date(rt.date).toLocaleTimeString('ko-KR', {
-                hour: '2-digit',
-                minute: '2-digit',
-              })
-            : '',
+          timeText,
           tags: r.routine?.category ? [r.routine.category.name] : [],
         };
       });
@@ -377,19 +398,39 @@
       const json = await res.json();
       console.log('루틴 완료 API 응답: ', json);
 
+      const TOTAL_DAYS = routine.totalDays || 7;
+      const prevCompletedDays = routine.completedDays || 0;
+      const newCompletedDays = Math.min(TOTAL_DAYS, prevCompletedDays + 1);
+      routine.completedDays = newCompletedDays;
+
+      const newPercent = Math.min(
+        100,
+        Math.round((newCompletedDays / TOTAL_DAYS) * 100)
+      );
+      routine.progressPercent = newPercent;
+
       const progressBar = li.querySelector('.progress-bar');
       const progressLabel = li.querySelector('.progress-label');
 
       if (progressBar) {
-        progressBar.style.width = '100%';
+        progressBar.style.width = `${newPercent}%`;
       }
 
       if (progressLabel) {
-        progressLabel.textContent = '100%';
+        progressLabel.textContent = `${newPercent}% (${newCompletedDays}/${TOTAL_DAYS}일)`;
       }
 
       completeBtn.disabled = true;
       completeBtn.textContent = '오늘 완료함';
+
+      if (newPercent === 100) {
+        const statusBadge = li.querySelector('.routine-status-badge');
+        if (statusBadge) {
+          statusBadge.textContent = '완료';
+          statusBadge.classList.remove('active', 'paused');
+          statusBadge.classList.add('completed');
+        }
+      }
     } catch (e) {
       console.error('루틴 완료 처리 중 예외 발생: ', e);
       alert('루틴 완료 처리 중 오류가 발생했습니다.');
@@ -399,7 +440,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    const todayText = $('#todayText');
+    const todayText = $('todayText');
     if (todayText) {
       todayText.textContent = formatToday();
     }
