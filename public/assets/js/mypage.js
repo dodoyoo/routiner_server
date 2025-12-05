@@ -14,6 +14,35 @@
     return token;
   }
 
+  function parseJwt(token) {
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) return null;
+
+      const base64Url = parts[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        window
+          .atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+
+      return JSON.parse(jsonPayload);
+    } catch (e) {
+      console.error('JWT 파싱 실패', e);
+      return null;
+    }
+  }
+
+  function getUserIdFromToken() {
+    const token = window.localStorage.getItem('routiner_token');
+    if (!token) return null;
+    const payload = parseJwt(token);
+    return payload?.userId ?? null;
+  }
+
   async function fetchProfile() {
     const token = requireAuth();
     if (!token) return;
@@ -61,6 +90,119 @@
         activeCount: 4,
         createdAt: '2025-01-01T00:00:00.000Z',
       });
+    }
+  }
+
+  async function fetchRoutineStats(rangeDays) {
+    const token = requireAuth();
+    if (!token) return null;
+
+    const userId = getUserIdFromToken();
+    if (!userId) {
+      window.localStorage.removeItem('routiner_token');
+      window.location.href = './index.html';
+      return null;
+    }
+
+    try {
+      const url = new URL(
+        `${API_BASE}/user-routines/${userId}`,
+        window.location.origin
+      );
+
+      const res = await fetch(url.toString(), {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        cache: 'no-store',
+      });
+
+      if (!res.ok) {
+        throw new Error(`Failed to fetch routines: ${res.status}`);
+      }
+
+      const json = await res.json();
+      const data = json.data || [];
+
+      // routineTimes 전체를 모아 날짜별로 완료여부 계산
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+      const fromDate = new Date(today);
+      fromDate.setDate(fromDate.getDate() - (rangeDays - 1)); // N일 범위 시작
+
+      // 날짜 문자열: YYYY-MM-DD
+      const toDateStr = today.toISOString().split('T')[0];
+      const fromDateStr = fromDate.toISOString().split('T')[0];
+
+      const completedDateSet = new Set();
+
+      data.forEach((ur) => {
+        const routineTimes = ur.routineTimes || [];
+        routineTimes.forEach((rt) => {
+          if (!rt.date) return;
+          const d = new Date(rt.date);
+          const ds = d.toISOString().split('T')[0];
+
+          // 기간 범위 안에 있는지
+          if (ds < fromDateStr || ds > toDateStr) return;
+
+          if (rt.progress >= 100) {
+            completedDateSet.add(ds);
+          }
+        });
+      });
+
+      const totalDays = rangeDays;
+      const completedDays = completedDateSet.size;
+      const percent =
+        totalDays > 0 ? Math.round((completedDays / totalDays) * 100) : 0;
+
+      return { percent, completedDays, totalDays };
+    } catch (err) {
+      console.error('루틴 통계 조회 실패:', err);
+      return null;
+    }
+  }
+
+  function renderStats(rangeDays, stats) {
+    const circle = document.getElementById('circleGraph');
+    const percentEl = document.getElementById('statPercentLabel');
+    const rangeLabelEl = document.getElementById('statRangeLabel');
+    const summaryEl = document.getElementById('statSummaryText');
+
+    if (!circle || !percentEl || !rangeLabelEl || !summaryEl) return;
+
+    const percent = stats?.percent ?? 0;
+    const completedDays = stats?.completedDays ?? 0;
+    const totalDays = stats?.totalDays ?? rangeDays;
+
+    // 원형 그래프 채우기
+    circle.style.setProperty('--percent', percent);
+
+    // 가운데 숫자
+    percentEl.textContent = String(percent);
+
+    // 범위 라벨
+    rangeLabelEl.textContent =
+      rangeDays === 7
+        ? '최근 7일'
+        : rangeDays === 30
+        ? '최근 30일'
+        : `최근 ${rangeDays}일`;
+
+    // 설명 텍스트
+    if (completedDays === 0) {
+      summaryEl.textContent =
+        rangeDays === 7
+          ? '최근 7일 동안 루틴을 완료한 날이 아직 없습니다. 오늘 하나부터 시작해볼까요?'
+          : '최근 30일 동안 루틴을 완료한 날이 아직 없습니다. 이번 달 목표를 새로 잡아보세요.';
+    } else {
+      summaryEl.innerHTML = `
+        <strong>최근 ${rangeDays}일</strong> 동안
+        <strong>${completedDays}일</strong>에 루틴을 완료하셨어요.
+        전체 기간 대비 약 <strong>${percent}%</strong>의 달성률입니다.
+      `;
     }
   }
 
@@ -153,6 +295,29 @@
     });
   }
 
+  function setupStatsRangeTabs() {
+    const buttons = document.querySelectorAll('.range-btn[data-range]');
+    if (!buttons.length) return;
+
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        buttons.forEach((b) => {
+          b.classList.remove('active');
+          b.setAttribute('aria-pressed', 'false');
+        });
+
+        btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
+
+        const rangeStr = btn.getAttribute('data-range') || '7';
+        const rangeDays = Number(rangeStr) || 7;
+
+        const stats = await fetchRoutineStats(rangeDays);
+        renderStats(rangeDays, stats);
+      });
+    });
+  }
+
   async function handleLogout() {
     try {
       const res = await fetch(`${API_BASE}/auth/logout`, {
@@ -172,9 +337,15 @@
   }
 
   // 초기화
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
     setupNav();
     setupActions();
     fetchProfile();
+
+    setupStatsRangeTabs();
+
+    const initialRange = 7;
+    const stats = await fetchRoutineStats(initialRange);
+    renderStats(initialRange, stats);
   });
 })();

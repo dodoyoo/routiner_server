@@ -351,6 +351,122 @@ body {
   font-size: 12px;
 }
 
+.stats-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 18px;
+  margin-bottom: 8px;
+}
+
+.stats-range-tabs {
+  display: inline-flex;
+  gap: 6px;
+  padding: 2px;
+  border-radius: 999px;
+  background: rgba(12, 13, 21, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.range-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 11px;
+  color: var(--muted);
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.08s ease;
+}
+
+.range-btn.active {
+  background: linear-gradient(120deg, #7c9cff, #b793ff);
+  color: #0a0b11;
+  font-weight: 600;
+}
+
+.range-btn:active {
+  transform: translateY(1px);
+}
+
+/* 원형 그래프 영역 */
+.stats-graph-wrapper {
+  margin-top: 6px;
+  padding: 14px 10px 4px;
+  border-radius: 18px;
+  background: rgba(10, 11, 18, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+/* 동그라미 그래프 (conic-gradient 사용) */
+.circle-graph {
+  --percent: 0; /* JS에서 업데이트 */
+  width: 120px;
+  height: 120px;
+  border-radius: 999px;
+  background: conic-gradient(
+    #7aa2ff calc(var(--percent) * 1%),
+    rgba(255, 255, 255, 0.08) 0
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+  position: relative;
+}
+
+/* 안쪽 원 */
+.circle-inner {
+  width: 82px;
+  height: 82px;
+  border-radius: 999px;
+  background: radial-gradient(circle at top, #171927 0%, #05060b 75%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.circle-percent {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.circle-percent #statPercentLabel {
+  font-size: 22px;
+}
+
+.percent-sign {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.circle-caption {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* 오른쪽 설명 영역 */
+.stats-description {
+  flex: 1;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.stats-description strong {
+  color: var(--text);
+}
+
 /* 작은 기기 보정 */
 @media (max-width: 380px) {
   .app {
@@ -366,5 +482,13 @@ body {
   }
   .stats-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .circle-graph {
+    width: 110px;
+    height: 110px;
+  }
+  .circle-inner {
+    width: 76px;
+    height: 76px;
   }
 }
