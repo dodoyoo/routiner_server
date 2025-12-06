@@ -286,6 +286,15 @@ export class UserController {
     }
   }
 
+  async signOut(req: Request, res: Response) {
+    try {
+      return res.status(200).json({ message: '로그아웃 성공' });
+    } catch (err: unknown) {
+      console.error('로그아웃 처리 실패: ', err);
+      return res.status(500).json({ message: 'INTERNAL_SERVER_ERROR' });
+    }
+  }
+
   async getMyProfile(req: Request, res: Response) {
     try {
       const userPayload = req.user as JwtUserPayload;

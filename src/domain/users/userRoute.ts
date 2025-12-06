@@ -23,4 +23,8 @@ router.get('/api/users/me', authMiddleware, (req, res) =>
 
 router.post('/api/sign-in', (req, res) => userController.testSignIn(req, res));
 
+router.post('/api/auth/sign-out', authMiddleware, (req, res) =>
+  userController.signOut(req, res)
+);
+
 export default router;

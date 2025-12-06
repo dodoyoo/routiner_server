@@ -320,19 +320,25 @@
 
   async function handleLogout() {
     try {
-      const res = await fetch(`${API_BASE}/auth/logout`, {
+      const res = await fetch(`${API_BASE}/auth/sign-out`, {
         method: 'POST',
-        credentials: 'include',
+        headers: token
+          ? {
+              Authorization: `Bearer ${token}`,
+            }
+          : {
+              'Content-Type': 'application/json',
+            },
       });
 
       if (!res.ok) {
-        throw new Error('Logout failed');
+        console.warn('서버 로그아웃 응답이 없습니다.', res.status);
       }
-
-      window.location.href = './index.html'; // 로그인 페이지 경로에 맞게 수정
     } catch (e) {
-      console.error(e);
-      alert('로그아웃 중 오류가 발생했습니다. 다시 시도해 주세요.');
+      console.error('로그아웃 API 호출 중 오류', e);
+    } finally {
+      window.localStorage.removeItem('routiner_token');
+      window.location.href = './index.html';
     }
   }
 
