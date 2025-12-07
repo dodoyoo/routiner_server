@@ -15,11 +15,6 @@ export class CouponRepository {
     this.routineTimeRepository = dataSource.getRepository(RoutineTimes);
   }
 
-  private toDateStringKST(date: Date) {
-    const kst = new Date(date.getTime() + 9 * 60 * 60 * 1000);
-    return kst.toISOString().split('T')[0];
-  }
-
   // 쿠폰 발급
   public async issueCoupon(user_id: number, user_routine_id: number) {
     try {
@@ -34,23 +29,28 @@ export class CouponRepository {
         .where('user_routine.id = :user_routine_id', { user_routine_id })
         .andWhere('user_routine.user_id = :user_id', { user_id })
         .getRawOne<{
-          id: number;
-          user_id: number;
-          start_date: string;
-          end_date: string;
+          user_routine_id: number;
+          user_routine_user_id: number;
+          user_routine_start_date: string;
+          user_routine_end_date: string;
         }>();
 
       if (!userRoutine) {
         throw new Error('존재하지 않는 사용자 루틴입니다.');
       }
 
-      const start = new Date(userRoutine.start_date);
-      const end = new Date(userRoutine.end_date);
-      const requiredDays = Math.floor(
-        end.getTime() - start.getTime() / 8640000 + 1
-      );
+      const start = new Date(userRoutine.user_routine_start_date);
+      const end = new Date(userRoutine.user_routine_end_date);
+
+      const requiredDays = 7;
 
       if (requiredDays !== 7) {
+        return {
+          issued: false,
+          reason: 'PERIOD_NOT_7_DAYS',
+          requiredDays,
+          successDays: 0,
+        };
       }
 
       const successRow = await this.routineTimeRepository
@@ -60,12 +60,13 @@ export class CouponRepository {
         .andWhere('routine_time.user_routine_id', { user_routine_id })
         .andWhere('routine_time.progress = 100')
         .andWhere('routine_time.date BETWEEN :start AND :end', {
-          start: userRoutine.start_date,
-          end: userRoutine.end_date,
+          start: userRoutine.user_routine_start_date,
+          end: userRoutine.user_routine_end_date,
         })
         .getRawOne<{ success_days: string }>();
 
       const successDays = Number(successRow?.success_days || 0);
+
       if (successDays < requiredDays) {
         return { issued: false, reason: '미달성', requiredDays, successDays };
       }
@@ -74,25 +75,31 @@ export class CouponRepository {
         where: {
           user_id,
           user_routine_id,
-          period_start: userRoutine.start_date,
-          period_end: userRoutine.end_date,
+          period_start: userRoutine.user_routine_start_date,
+          period_end: userRoutine.user_routine_end_date,
         },
       });
 
       if (existCoupon) {
-        return { issued: false, reason: '이미 발급됨', coupon: existCoupon };
+        return {
+          issued: false,
+          reason: '이미 발급됨',
+          requiredDays,
+          successDays,
+          coupon: existCoupon,
+        };
       }
 
       const coupon = this.couponRepository.create({
         user_id,
         user_routine_id,
-        period_start: userRoutine.start_date,
-        period_end: userRoutine.end_date,
+        period_start: userRoutine.user_routine_start_date,
+        period_end: userRoutine.user_routine_end_date,
         status: 'issued',
       });
 
       const saved = await this.couponRepository.save(coupon);
-      return { issued: true, coupon: saved };
+      return { issued: true, coupon: saved, requiredDays, successDays };
     } catch (error) {
       console.error('issueCoupon:', error);
       throw new Error('쿠폰 발급 중 오류가 발생하였습니다.');
