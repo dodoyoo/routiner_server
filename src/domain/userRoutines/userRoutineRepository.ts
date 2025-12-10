@@ -69,8 +69,8 @@ export class UserRoutineRepository {
         .leftJoinAndSelect(
           'user_routine.routineTimes',
           'routineTime',
-          'routineTime.user_id = :user_id AND DATE(routineTime.date) = :today',
-          { user_id, today: todayStr }
+          'routineTime.user_id = :user_id',
+          { user_id }
         )
         .where('user_routine.user_id = :user_id', { user_id })
         .orderBy('user_routine.start_date', 'DESC')
