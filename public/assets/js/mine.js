@@ -1,6 +1,5 @@
 (function () {
   const API_BASE = window.__ROUTINER__?.API_BASE || '/api';
-  const ROUTINE_ENDPOINT = `${API_BASE}/user-routines`; // 실제 엔드포인트에 맞게 수정
 
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => document.querySelectorAll(selector);
@@ -13,6 +12,36 @@
       return null;
     }
     return token;
+  }
+
+  function parseJwt(token) {
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) return null;
+
+      const base64Url = parts[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        window
+          .atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+
+      return JSON.parse(jsonPayload);
+    } catch (e) {
+      console.error('JWT 파싱 실패', e);
+      return null;
+    }
+  }
+
+  function getUserIdFromToken() {
+    const token = window.localStorage.getItem('routiner_token');
+    if (!token) return null;
+
+    const payload = parseJwt(token);
+    return payload?.userId ?? null;
   }
 
   function formatToday() {
@@ -56,99 +85,139 @@
   }
 
   function buildRoutineItem(routine) {
-    const template = document.getElementById('routineItemTemplate');
-    if (!template) return document.createElement('li');
+    const li = document.createElement('li');
+    li.className = 'routine-item';
 
-    const fragment = template.contentType.cloneNode(true);
-    const li = fragment.querySelector('.routine-item');
+    const {
+      title,
+      description,
+      status,
+      progressPercent,
+      timeText,
+      tags,
+      completedToday,
+    } = routine;
 
-    const { title, description, status, progressPercent, timeText, tags } =
-      routine;
+    // 상단 영역
+    const top = document.createElement('div');
+    top.className = 'routine-top';
 
-    const titleEl = li.querySelector('.routine-title');
-    const timeEl = li.querySelector('.routine-time');
-    const tagsEl = li.querySelector('.routine-tags');
-    const statusBadgeEl = li.querySelector('.routine-status-badge');
-    const progressBarEl = li.querySelector('.progress-bar');
-    const progressLabelEl = li.querySelector('.progress-label');
-    const noteEl = li.querySelector('.routine-note');
+    const left = document.createElement('div');
 
-    // 버튼 이벤트 (완료/리셋 등)
-    const completeBtn = li.querySelector('[data-action="complete"]');
-    const resetBtn = li.querySelector('[data-action="reset"]');
+    const titleEl = document.createElement('p');
+    titleEl.className = 'routine-title';
+    titleEl.textContent = title || '이름 없는 루틴';
 
-    if (titleEl) titleEl.textContent = title || '이름 없는 루틴';
-    if (timeEl) timeEl.textContent = timeText || '';
+    const timeEl = document.createElement('p');
+    timeEl.className = 'routine-time';
+    timeEl.textContent = timeText || '';
 
-    // 태그 채우기
-    if (tagsEl) {
-      tagsEl.innerHTML = '';
-      if (tags && tags.length) {
-        tags.forEach((tag) => {
-          const span = document.createElement('span');
-          span.className = 'routine-tag';
-          span.textContent = String(tag);
-          tagsEl.appendChild(span);
-        });
-      } else {
-        // 태그 없으면 감춰도 됨
-        tagsEl.style.display = 'none';
-      }
-    }
+    left.appendChild(titleEl);
+    left.appendChild(timeEl);
 
-    // 상태 뱃지
-    if (statusBadgeEl) {
-      statusBadgeEl.classList.remove('active', 'completed', 'paused');
-      let label = '미지정';
+    if (tags && tags.length) {
+      const tagsWrap = document.createElement('div');
+      tagsWrap.className = 'routine-tags';
 
-      if (status === 'ACTIVE') {
-        statusBadgeEl.classList.add('active');
-        label = '진행 중';
-      } else if (status === 'COMPLETED') {
-        statusBadgeEl.classList.add('completed');
-        label = '완료';
-      } else if (status === 'PAUSED') {
-        statusBadgeEl.classList.add('paused');
-        label = '잠시 쉼';
-      }
-
-      statusBadgeEl.textContent = label;
-    }
-
-    // 진행도
-    const pct = progressPercent ?? 0;
-    if (progressBarEl) {
-      progressBarEl.style.width = `${pct}%`;
-    }
-    if (progressLabelEl) {
-      progressLabelEl.textContent = `${pct}%`;
-    }
-
-    // 메모/설명
-    if (noteEl) {
-      noteEl.textContent = description || '작은 실천이 습관을 만듭니다.';
-    }
-
-    // 버튼 표시 제어
-    if (completeBtn && resetBtn) {
-      if (status === 'COMPLETED') {
-        completeBtn.style.display = 'none';
-        resetBtn.style.display = 'inline-flex';
-      } else {
-        completeBtn.style.display = 'inline-flex';
-        resetBtn.style.display = 'none';
-      }
-
-      completeBtn.addEventListener('click', () => {
-        // TODO: 완료 API 연동
-        alert('완료 처리 API를 연동해주세요 🙂');
+      tags.forEach((tag) => {
+        const span = document.createElement('span');
+        span.className = 'routine-tag';
+        span.textContent = String(tag);
+        tagsWrap.appendChild(span);
       });
 
-      resetBtn.addEventListener('click', () => {
-        // TODO: 다시 시작 API 연동
-        alert('다시 시작 API를 연동해주세요 🙂');
-      });
+      left.appendChild(tagsWrap);
     }
+
+    const statusBadge = document.createElement('span');
+    statusBadge.className = 'routine-status-badge';
+
+    let statusLabel = '미지정';
+    if (status === 'ACTIVE') {
+      statusBadge.classList.add('active');
+      statusLabel = '진행 중';
+    } else if (status === 'COMPLETED') {
+      statusBadge.classList.add('completed');
+      statusLabel = '완료';
+    } else if (status === 'PAUSED') {
+      statusBadge.classList.add('paused');
+      statusLabel = '잠시 쉼';
+    }
+    statusBadge.textContent = statusLabel;
+
+    top.appendChild(left);
+    top.appendChild(statusBadge);
+
+    // 진행도 영역
+    const progressRow = document.createElement('div');
+    progressRow.className = 'routine-progress-row';
+
+    const track = document.createElement('div');
+    track.className = 'progress-track';
+
+    const bar = document.createElement('div');
+    bar.className = 'progress-bar';
+    bar.style.width = `${progressPercent ?? 0}%`;
+
+    track.appendChild(bar);
+
+    const progressLabel = document.createElement('span');
+    progressLabel.className = 'progress-label';
+    progressLabel.textContent = `${progressPercent ?? 0}%`;
+
+    progressRow.appendChild(track);
+    progressRow.appendChild(progressLabel);
+
+    // 하단 영역
+    const bottom = document.createElement('div');
+    bottom.className = 'routine-bottom';
+
+    const note = document.createElement('p');
+    note.className = 'routine-note';
+    note.textContent = description || '작은 실천이 습관을 만듭니다.';
+
+    const actions = document.createElement('div');
+    actions.className = 'routine-actions';
+
+    const completeBtn = document.createElement('button');
+    completeBtn.className = 'routine-btn primary';
+    completeBtn.textContent = '완료';
+
+    const resetBtn = document.createElement('button');
+    resetBtn.className = 'routine-btn';
+    resetBtn.textContent = '다시 시작';
+
+    if (completedToday) {
+      completeBtn.disabled = true;
+      completeBtn.textContent = '오늘 완료함';
+    }
+
+    if (status === 'COMPLETED') {
+      completeBtn.style.display = 'none';
+      resetBtn.style.display = 'inline-flex';
+    } else {
+      completeBtn.style.display = 'inline-flex';
+      resetBtn.style.display = 'none';
+    }
+
+    completeBtn.addEventListener('click', () => {
+      handleCompleteRoutine(routine, li, completeBtn);
+    });
+
+    resetBtn.addEventListener('click', () => {
+      alert('다시 시작 API를 연동해주세요 🙂');
+    });
+
+    actions.appendChild(completeBtn);
+    actions.appendChild(resetBtn);
+
+    bottom.appendChild(note);
+    bottom.appendChild(actions);
+
+    // li에 모두 조립
+    li.appendChild(top);
+    li.appendChild(progressRow);
+    li.appendChild(bottom);
 
     return li;
   }
@@ -189,39 +258,66 @@
     const token = requireAuth();
     if (!token) return;
 
+    const userId = getUserIdFromToken();
+    if (!userId) {
+      alert('유저 정보를 불러올 수 없습니다. 다시 로그인해 주세요.');
+      window.localStorage.removeItem('routiner_token');
+      window.location.href = './index.html';
+      return;
+    }
+
     try {
-      const url = new URL(ROUTINE_ENDPOINT, window.location.origin);
-      if (statusFilter && statusFilter !== 'all') {
-        url.searchParams.set('status', statusFilter);
-      }
+      const url = new URL(
+        `${API_BASE}/user-routines/${userId}`,
+        window.location.origin
+      );
 
       const res = await fetch(url.toString(), {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+
+        cache: 'no-store',
       });
 
       if (!res.ok) {
-        throw new Error('Failed to fetch routines');
+        throw new Error(`Failed to fetch routines: ${res.status}`);
       }
 
-      const data = await res.json();
-      // 예상 형태: [{ id, title, status, progressPercent, ... }, ...]
+      const json = await res.json();
+      console.log('루틴 API 응답:', json);
 
-      const routines = (data.routines || data || []).map((r) => ({
-        id: r.id,
-        title: r.title || r.name || '이름 없는 루틴',
-        description: r.description || r.memo || '',
-        status: r.status || 'ACTIVE',
-        progressPercent: r.progressPercent ?? r.progress ?? 0,
-        timeText: r.timeText || r.time_range || '',
-        tags: r.tags || r.labels || [],
-      }));
+      const data = json.data || [];
+
+      const routines = data.map((r) => {
+        const rt = (r.routineTimes && r.routineTimes[0]) || null;
+        const todayProgress = rt?.progress ?? 0;
+        const completedToday = todayProgress >= 100;
+
+        const totalDays = 7;
+        const percent = completedToday ? 100 : 0;
+
+        return {
+          id: r.id,
+          title: r.routine?.title || r.routine?.name || '이름 없는 루틴',
+          description: r.routine?.description || '',
+          status: r.is_active ? 'ACTIVE' : 'PAUSED',
+          progressPercent: percent,
+          completedToday,
+          timeText: rt
+            ? new Date(rt.date).toLocaleTimeString('ko-KR', {
+                hour: '2-digit',
+                minute: '2-digit',
+              })
+            : '',
+          tags: r.routine?.category ? [r.routine.category.name] : [],
+        };
+      });
 
       renderRoutines(routines);
       updateSummary(routines);
     } catch (err) {
-      console.error(err);
+      console.error('루틴 목록 조회 실패: ', err);
       renderRoutines([]);
     }
   }
@@ -234,6 +330,72 @@
       // TODO: 루틴 생성 페이지 또는 모달 연결
       alert('루틴 추가 화면으로 이동하도록 연결해주세요 🙂');
     });
+  }
+
+  async function handleCompleteRoutine(routine, li, completeBtn) {
+    const token = window.localStorage.getItem('routiner_token');
+    if (!token) {
+      alert('로그인이 필요합니다.');
+      window.location.href = './index.html';
+      return;
+    }
+
+    const userId = getUserIdFromToken();
+    if (!userId) {
+      alert('유저 정보를 불러올 수 없습니다. 다시 로그인해 주세요');
+      window.localStorage.removeItem('routiner_token');
+      window.location.href = './index.html';
+      return;
+    }
+
+    const user_routine_id = routine.id;
+
+    try {
+      completeBtn.disabled = true;
+      completeBtn.textContent = '처리 중 ...';
+
+      const res = await fetch('/api/routine-time/complete', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_routine_id,
+        }),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.error('루틴 완료 API 실패', text);
+        alert('루틴 완료 처리 중 오류가 발생했습니다.');
+        completeBtn.disabled = false;
+        completeBtn.textContent = '완료';
+        return;
+      }
+
+      const json = await res.json();
+      console.log('루틴 완료 API 응답: ', json);
+
+      const progressBar = li.querySelector('.progress-bar');
+      const progressLabel = li.querySelector('.progress-label');
+
+      if (progressBar) {
+        progressBar.style.width = '100%';
+      }
+
+      if (progressLabel) {
+        progressLabel.textContent = '100%';
+      }
+
+      completeBtn.disabled = true;
+      completeBtn.textContent = '오늘 완료함';
+    } catch (e) {
+      console.error('루틴 완료 처리 중 예외 발생: ', e);
+      alert('루틴 완료 처리 중 오류가 발생했습니다.');
+      completeBtn.disabled = false;
+      completeBtn.textContent = '완료';
+    }
   }
 
   document.addEventListener('DOMContentLoaded', () => {

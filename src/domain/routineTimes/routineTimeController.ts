@@ -4,6 +4,7 @@ import {
   InvalidPropertyError,
   PropertyRequiredError,
 } from '../../utils/customError';
+import { JwtUserPayload } from '../../utils/jwt';
 
 export class RoutineTimeController {
   private routineTimeRepository: RoutineTimeRepository;
@@ -14,7 +15,10 @@ export class RoutineTimeController {
 
   public async completeRoutine(req: Request, res: Response) {
     try {
-      const { user_id, user_routine_id } = req.body;
+      const { user_routine_id } = req.body;
+
+      const user = req.user as JwtUserPayload | undefined;
+      const user_id = user?.userId;
 
       if (!user_id || !user_routine_id) {
         return res
@@ -36,14 +40,14 @@ export class RoutineTimeController {
   // ✅ 금일 루틴 상태 조회
   public async getTodayRoutine(req: Request, res: Response) {
     try {
-      const { user_id } = req.params;
+      const userId = (req.user as JwtUserPayload).userId;
 
-      if (!user_id) {
+      if (!userId) {
         return res.status(400).json({ message: 'user_id가 필요합니다.' });
       }
 
       const result = await this.routineTimeRepository.getTodayRoutineStatus(
-        Number(user_id)
+        Number(userId)
       );
       return res.status(200).json(result);
     } catch (error) {

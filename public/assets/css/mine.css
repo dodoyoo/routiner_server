@@ -319,6 +319,12 @@ body {
   font-size: 11px;
   cursor: pointer;
 }
+
+.routine-btn[disabled] {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .routine-btn.primary {
   border-color: rgba(56, 211, 159, 0.9);
   background: rgba(56, 211, 159, 0.12);
