@@ -22,7 +22,12 @@ body {
   margin: 0;
   font-family: 'Pretendard', system-ui, -apple-system, Segoe UI, Roboto, Arial,
     'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
-  background: white;
+  background: radial-gradient(
+    circle at top,
+    #161922 0%,
+    #05060a 55%,
+    #020308 100%
+  );
   color: var(--text);
   display: flex;
   align-items: center;
