@@ -70,25 +70,45 @@
 
       <!-- 간단 통계 -->
       <section class="stats" aria-label="활동 통계">
-        <h2 class="section-title">나의 루틴 현황</h2>
-        <div class="stats-grid">
-          <article class="stat-card">
-            <p class="stat-label">연속 달성</p>
-            <p class="stat-value"><span id="streakDays">0</span>일</p>
-            <p class="stat-sub">어제도 성공하셨나요?</p>
-          </article>
+        <div class="stats-header">
+          <h2 class="section-title">나의 루틴 통계</h2>
+          <div class="stats-rang-tabs" role="tablist">
+            <button
+              class="range-btn active"
+              type="button"
+              data-range="7"
+              aria-pressed="true"
+            >
+              최근 7일
+            </button>
+            <button
+              class="range-btn"
+              type="button"
+              data-range="30"
+              aria-pressed="false"
+            >
+              최근 30일
+            </button>
+          </div>
+        </div>
 
-          <article class="stat-card">
-            <p class="stat-label">완료 루틴</p>
-            <p class="stat-value"><span id="completedCount">0</span>개</p>
-            <p class="stat-sub">작은 완주가 모여 습관이 됩니다.</p>
-          </article>
+        <div class="stats-graph-wrapper">
+          <div class="circle-graph" id="circleGraph">
+            <div class="circle-inner">
+              <p class="circle-percent">
+                <span id="statPercentLabel">0</span
+                ><span class="percent-sign">%</span>
+              </p>
+              <p class="circle-caption" id="statRangeLabel">최근 7일</p>
+            </div>
+          </div>
 
-          <article class="stat-card">
-            <p class="stat-label">진행 중 루틴</p>
-            <p class="stat-value"><span id="activeCount">0</span>개</p>
-            <p class="stat-sub">오늘도 하나씩 채워보세요.</p>
-          </article>
+          <div class="stats-description">
+            <p id="statSummaryText">
+              최근 7일 동안 루틴을 수행한 날이 아직 없습니다. 오늘 하나부터
+              시작해볼까요?
+            </p>
+          </div>
         </div>
       </section>
 
