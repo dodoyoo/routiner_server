@@ -34,8 +34,9 @@ export class CouponController {
         return res.status(400).json({
           message: '쿠폰 발급 조건을 만족하지 못했습니다.',
           reason: result.reason,
-          windowDays: result.windowDays,
-          requireDays: result.requiredSuccess,
+          periodStart: result.periodStart,
+          periodEnd: result.periodEnd,
+          requireSuccess: result.requiredSuccess,
           successDays: result.successDays,
         });
       }

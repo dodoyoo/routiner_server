@@ -15,9 +15,22 @@ export class CouponRepository {
     this.routineTimeRepository = dataSource.getRepository(RoutineTimes);
   }
 
-  private toDateStringKST(date: Date) {
+  private getMonthWindowKST(date = new Date()) {
     const kst = new Date(date.getTime() + 9 * 60 * 60 * 1000);
-    return kst.toISOString().split('T')[0];
+    const year = kst.getFullYear();
+    const month = kst.getMonth();
+
+    const start = new Date(Date.UTC(year, month, 1));
+    const end = new Date(Date.UTC(year, month + 1, 0));
+
+    const toYmd = (d: Date) => d.toISOString().split('T')[0];
+
+    return {
+      startStr: toYmd(start),
+      endStr: toYmd(end),
+      year,
+      month: month + 1,
+    };
   }
 
   // 쿠폰 발급
@@ -37,15 +50,11 @@ export class CouponRepository {
         throw new Error('존재하지 않는 사용자 루틴입니다.');
       }
 
-      const windowDays = 30;
-      const requiredSuccess = 20;
-
-      const now = new Date();
-      const endStr = this.toDateStringKST(now);
-      const startDate = new Date(
-        now.getTime() - (windowDays - 1) * 24 * 60 * 60 * 1000
+      const { startStr, endStr, year, month } = this.getMonthWindowKST(
+        new Date()
       );
-      const startStr = this.toDateStringKST(startDate);
+
+      const requiredSuccess = 20;
 
       // if (requiredDays !== 7) {
       //   return {
@@ -58,13 +67,13 @@ export class CouponRepository {
 
       const successRow = await this.routineTimeRepository
         .createQueryBuilder('routine_time')
-        .select('COUNT(DISTINCT routine_time.date)', 'success_days')
+        .select('COUNT(DISTINCT Date(routine_time.date))', 'success_days')
         .where('routine_time.user_id = :user_id', { user_id })
         .andWhere('routine_time.user_routine_id = :user_routine_id', {
           user_routine_id,
         })
         .andWhere('routine_time.progress = 100')
-        .andWhere('routine_time.date BETWEEN :start AND :end', {
+        .andWhere('DATE(routine_time.date) BETWEEN :start AND :end', {
           start: startStr,
           end: endStr,
         })
@@ -76,7 +85,10 @@ export class CouponRepository {
         return {
           issued: false,
           reason: '미달성',
-          windowDays,
+          periodStart: startStr,
+          periodEnd: endStr,
+          year,
+          month,
           requiredSuccess,
           successDays,
         };
@@ -95,7 +107,10 @@ export class CouponRepository {
         return {
           issued: false,
           reason: '이미 발급됨',
-          windowDays,
+          periodStart: startStr,
+          periodEnd: endStr,
+          year,
+          month,
           requiredSuccess,
           successDays,
           coupon: existCoupon,
@@ -114,7 +129,10 @@ export class CouponRepository {
       return {
         issued: true,
         coupon: saved,
-        windowDays,
+        periodStart: startStr,
+        periodEnd: endStr,
+        year,
+        month,
         requiredSuccess,
         successDays,
       };
