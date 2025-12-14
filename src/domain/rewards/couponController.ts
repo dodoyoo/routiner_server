@@ -5,6 +5,7 @@ import { PropertyRequiredError } from '../../utils/customError';
 import { reportErrorMessage } from '../../utils/errorHandling';
 import { JwtUserPayload } from '../../utils/jwt';
 import { CouponStatus } from './couponEntity';
+import { request } from 'http';
 
 export class CouponController {
   private couponRepository = new CouponRepository();
@@ -17,7 +18,7 @@ export class CouponController {
     try {
       const user = req.user as JwtUserPayload | undefined;
       const user_id = user?.userId;
-      const { user_routine_id } = req.body;
+      const { user_routine_id, requestCount } = req.body;
 
       if (!user_id || !user_routine_id) {
         return res
@@ -25,9 +26,10 @@ export class CouponController {
           .json({ message: 'user_id, user_routine_id가 필요합니다.' });
       }
 
-      const result = await this.couponRepository.issueCoupon(
+      const result = await this.couponRepository.issueMonthlyCouponsByProgress(
         user_id,
-        user_routine_id
+        user_routine_id,
+        requestCount
       );
 
       if (!result.issued) {
@@ -36,14 +38,26 @@ export class CouponController {
           reason: result.reason,
           periodStart: result.periodStart,
           periodEnd: result.periodEnd,
-          requireSuccess: result.requiredSuccess,
-          successDays: result.successDays,
+          completionCount: result.completionCount,
+          requiredPerCoupon: result.requiredPerCoupon,
+          maxCouponsByRule: result.maxCouponsByRule,
+          alreadyIssued: result.alreadyIssued,
+          canIssue: result.canIssue,
         });
       }
 
       return res
         .status(200)
-        .json({ message: '쿠폰 발급 성공', coupon: result.coupon });
+        .json({
+          message: '쿠폰 발급 성공',
+          periodStart: result.periodStart,
+          periodEnd: result.periodEnd,
+          issuedNow: result.issuedNow,
+          coupons: result.coupons,
+          completionCount: result.completionCount,
+          maxCouponsByRule: result.maxCouponsByRule,
+          alreadyIssued: result.alreadyIssued,
+        });
     } catch (err: any) {
       console.error('쿠폰 발급 실패', err);
       return res
