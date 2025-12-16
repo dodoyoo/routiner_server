@@ -1,6 +1,7 @@
 (function () {
   const API_BASE = window.__ROUTINER__?.API_BASE || '/api';
   const PROFILE_ENDPOINT = `${API_BASE}/users/me`;
+  const COUPON_ISSUE_ENDPOINT = `${API_BASE}/coupon/issue`;
 
   const $ = (selector) => document.querySelector(selector);
 
@@ -34,6 +35,24 @@
       console.error('JWT 파싱 실패', e);
       return null;
     }
+  }
+  async function safeReadJson(res) {
+    try {
+      return await res.json();
+    } catch {
+      return null;
+    }
+  }
+
+  function extractErrorMessage(payload, fallback) {
+    if (!payload) return fallback;
+    return (
+      payload.message ||
+      payload.error ||
+      payload.msg ||
+      (Array.isArray(payload.errors) && payload.errors[0]?.message) ||
+      fallback
+    );
   }
 
   function getUserIdFromToken() {
@@ -255,12 +274,140 @@
     });
   }
 
+  function toKstYmd(dateLike) {
+    const d = new Date(dateLike);
+    const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
+    return kst.toISOString().slice(0, 10); // YYYY-MM-DD
+  }
+
+  function addDays(dateLike, days) {
+    const d = new Date(dateLike);
+    d.setDate(d.getDate() + days);
+    return d;
+  }
+
+  async function pickCompleted7DaysUserRoutineId() {
+    const token = requireAuth();
+    if (!token) return null;
+
+    const userId = getUserIdFromToken();
+    if (!userId) return null;
+
+    const url = new URL(
+      `${API_BASE}/user-routines/${userId}`,
+      window.location.origin
+    );
+
+    const res = await fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: 'no-store',
+    });
+
+    if (!res.ok) {
+      throw new Error(`유저 루틴 조회 실패 (HTTP ${res.status})`);
+    }
+
+    const json = await res.json();
+    const routines = json.data || [];
+
+    // start_date DESC로 이미 정렬되어 오므로, "가장 최신 성공 루틴"부터 검사
+    for (const ur of routines) {
+      if (!ur?.id || !ur?.start_date || !ur?.end_date) continue;
+
+      const completedSet = new Set();
+
+      (ur.routineTimes || []).forEach((rt) => {
+        // rt.date / rt.progress 는 도팔님 기존 프론트(fetchRoutineStats)에서도 쓰고 계신 형태라 가정
+        if (!rt?.date) return;
+        if ((rt.progress ?? 0) >= 100) {
+          completedSet.add(toKstYmd(rt.date));
+        }
+      });
+
+      const start = new Date(ur.start_date);
+      // end_date는 +6로 저장하셨으니 7일 체크
+      let allDone = true;
+      for (let i = 0; i < 7; i++) {
+        const ymd = toKstYmd(addDays(start, i));
+        if (!completedSet.has(ymd)) {
+          allDone = false;
+          break;
+        }
+      }
+
+      if (allDone) return ur.id; // 이게 user_routine_id
+    }
+
+    return null;
+  }
+
+  async function issueCoupon(category) {
+    const token = requireAuth();
+    if (!token) return null;
+
+    const userId = getUserIdFromToken();
+    if (!userId) throw new Error('토큰에서 userId를 찾을 수 없습니다.');
+
+    const userRoutineId = await pickCompleted7DaysUserRoutineId();
+    if (!userRoutineId) {
+      throw new Error('7일 연속 성공한 루틴을 찾지 못했습니다.');
+    }
+
+    const res = await fetch(COUPON_ISSUE_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        user_id: userId,
+        user_routine_id: userRoutineId,
+        category,
+      }),
+    });
+
+    if (res.status === 401 || res.status === 403) {
+      window.localStorage.removeItem('routiner_token');
+      addListener('로그인이 만료되었습니다. 다시 로그인 해주세요');
+      window.location.href = './index.html';
+      return null;
+    }
+
+    const payload = await safeReadJson(res);
+
+    if (!res.ok) {
+      const msg = extractErrorMessage(
+        payload,
+        `쿠폰 발급 실패 (HTTP ${res.status})`
+      );
+      throw new Error(msg);
+    }
+    return payload;
+  }
+
   function setupActions() {
     const couponBtn = document.getElementById('openCouponButton');
     if (couponBtn) {
-      couponBtn.addEventListener('click', () => {
-        // 실제 쿠폰 페이지가 있다면 그쪽으로 이동하도록 수정
-        window.location.href = './coupons.html';
+      couponBtn.addEventListener('click', async () => {
+        const category = 'MONTHLY';
+        couponBtn.disabled = true;
+        const prevText = couponBtn.textContent;
+        couponBtn.textContent = '쿠폰 발급 중...';
+
+        try {
+          const result = await issueCoupon(category);
+          if (!result) return;
+
+          alert('쿠폰이 발급되었습니다.');
+          await fetchProfile();
+        } catch (e) {
+          alert(e?.message || '쿠폰 발급 중 오류가 발생했습니다.');
+        } finally {
+          couponBtn.disabled = false;
+          couponBtn.textContent = prevText;
+        }
+
+        // window.location.href = './coupons.html';
       });
     }
 
@@ -285,7 +432,6 @@
             alert('도움말 / 문의 페이지로 이동하도록 연결해 주세요.');
             break;
           case 'logout':
-            // 실제 로그아웃 API 엔드포인트에 맞게 수정
             handleLogout();
             break;
           default:
@@ -319,6 +465,8 @@
   }
 
   async function handleLogout() {
+    const token = window.localStorage.getItem('routiner_token');
+
     try {
       const res = await fetch(`${API_BASE}/auth/sign-out`, {
         method: 'POST',
