@@ -15,6 +15,7 @@
       `${API_BASE}/routines/${encodeURIComponent(
         category
       )}?page=${page}&pageSize=${pageSize}`,
+    addUserRoutine: () => `${API_BASE}/user-routines`,
   };
 
   async function getJSON(url) {
@@ -42,6 +43,91 @@
       throw new Error(`[${res.status}] ${text || '요청 실패'}`);
     }
     return res.json();
+  }
+
+  function requireAuth() {
+    const token = window.localStorage.getItem('routiner_token');
+    if (!token) {
+      alert('로그인이 필요합니다. 로그인 페이지로 이동합니다.');
+      window.location.href = './index.html';
+      return null;
+    }
+    return token;
+  }
+
+  function parseJwt(token) {
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) return null;
+
+      const base64Url = parts[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        window
+          .atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+
+      return JSON.parse(jsonPayload);
+    } catch (e) {
+      console.error('JWT 파싱 실패', e);
+      return null;
+    }
+  }
+
+  function getUserIdFromToken() {
+    const token = window.localStorage.getItem('routiner_token');
+    if (!token) return null;
+    const payload = parseJwt(token);
+    return payload?.userId ?? null;
+  }
+
+  async function addToMyRoutines(routineId) {
+    const token = requireAuth();
+    if (!token) return null;
+
+    const userId = getUserIdFromToken();
+    if (!userId) {
+      window.localStorage.removeItem('routiner_token');
+      alert('로그인이 만료되었습니다. 다시 로그인해 주세요.');
+      window.location.href = './index.html';
+      return null;
+    }
+
+    const res = await fetch(endpoint.addUserRoutine(), {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        user_id: Number(userId),
+        routine_id: Number(routineId),
+      }),
+    });
+
+    const payload = await (async () => {
+      try {
+        return await res.json();
+      } catch {
+        return null;
+      }
+    })();
+
+    if (res.status === 401 || res.status === 403) {
+      window.localStorage.removeItem('routiner_token');
+      alert('로그인이 만료되었습니다. 다시 로그인해 주세요.');
+      window.location.href = './index.html';
+      return null;
+    }
+
+    if (!res.ok) {
+      throw new Error(payload?.message || `추가 실패 (HTTP ${res.status})`);
+    }
+
+    return payload;
   }
 
   function showLoading() {
@@ -92,14 +178,29 @@
       })
       .join('');
 
-    $list.onclick = (e) => {
+    $list.onclick = async (e) => {
       const btn = e.target.closest('button[data-routine-id]');
       if (!btn) return;
+
       const rid = btn.dataset.routineId;
-      // TODO: 내 루틴 등록 API 연동 (예: POST /api/user-routines)
-      alert(`루틴(ID: ${rid}) 추가는 추후 구현`);
+      if (!rid) return;
+
+      btn.disabled = true;
+      const prev = btn.textContent;
+      btn.textContent = '추가 중...';
+
+      try {
+        await addToMyRoutines(rid);
+        alert('내 루틴 목록에 추가되었습니다.');
+      } catch (err) {
+        alert(err?.message || '루틴 추가 중 오류가 발생했습니다.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = prev;
+      }
     };
   }
+
   async function loadCategory(category) {
     showLoading();
     try {
