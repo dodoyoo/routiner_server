@@ -55,6 +55,8 @@
     return token;
   }
 
+  let addRoutineIdSet = new Set();
+
   function parseJwt(token) {
     try {
       const parts = token.split('.');
@@ -69,7 +71,6 @@
           .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
           .join('')
       );
-
       return JSON.parse(jsonPayload);
     } catch (e) {
       console.error('JWT 파싱 실패', e);
@@ -82,6 +83,25 @@
     if (!token) return null;
     const payload = parseJwt(token);
     return payload?.userId ?? null;
+  }
+
+  async function fetchMyRoutineIdSet() {
+    const token = localStorage.getItem('routiner_token');
+    if (!token) return;
+
+    const userId = getUserIdFromToken();
+    if (!userId) return;
+
+    const url = `${API_BASE}/user-routines/${userId}`;
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return;
+
+    const json = await res.json();
+    const my = json.data || [];
+    // my는 user_routine 목록이므로, 각 항목의 routine_id를 Set에 저장
+    addedRoutineIdSet = new Set(my.map((ur) => ur.routine_id));
   }
 
   async function addToMyRoutines(routineId) {
@@ -155,8 +175,6 @@
     const arr = Array.isArray(routines) ? routines : routines.data || [];
     if (!arr || arr.length === 0) return showEmpty();
 
-    if (!arr || arr.length === 0) return showEmpty();
-
     $list.innerHTML = arr
       .map((r) => {
         const categoryLabel =
@@ -182,7 +200,7 @@
       const btn = e.target.closest('button[data-routine-id]');
       if (!btn) return;
 
-      const rid = btn.dataset.routineId;
+      const rid = Number(btn.dataset.routineId);
       if (!rid) return;
 
       btn.disabled = true;
@@ -191,12 +209,13 @@
 
       try {
         await addToMyRoutines(rid);
-        alert('내 루틴 목록에 추가되었습니다.');
+        addRoutineIdSet.add(rid);
+        btn.textContent = '추가됨';
+        btn.disabled = true;
       } catch (err) {
-        alert(err?.message || '루틴 추가 중 오류가 발생했습니다.');
-      } finally {
         btn.disabled = false;
         btn.textContent = prev;
+        alert(err?.message || '루틴 추가 실패');
       }
     };
   }
@@ -216,6 +235,7 @@
   }
 
   async function init() {
+    await fetchMyRoutineIdSet();
     // 탭 클릭
     $tabs.onclick = (e) => {
       const btn = e.target.closest('button[data-category]');
