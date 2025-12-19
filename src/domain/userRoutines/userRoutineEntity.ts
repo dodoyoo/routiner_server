@@ -18,7 +18,7 @@ import { Coupons } from '../rewards/couponEntity';
 @Entity('user_routines')
 export class UserRoutines {
   @PrimaryGeneratedColumn()
-  id!: string;
+  id!: number;
 
   @Column({ type: 'integer', nullable: false })
   user_id!: number;
@@ -32,7 +32,7 @@ export class UserRoutines {
   @Column({ type: 'date' })
   end_date!: Date;
 
-  @Column({ type: 'boolean', nullable: true, default: 0 })
+  @Column({ type: 'boolean', nullable: true, default: false })
   is_active: boolean = false;
 
   @CreateDateColumn({
