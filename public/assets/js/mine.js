@@ -295,27 +295,43 @@
       const data = json.data || [];
 
       const todayStr = new Date().toISOString().split('T')[0];
-      const TOTAL_DAYS = 7;
 
       const routines = data.map((r) => {
         const routineTimes = r.routineTimes || [];
-        const completedDays = routineTimes.filter(
-          (rt) => rt.progress >= 100
-        ).length;
+        const TOTAL_DAYS = 7;
 
+        const toKstYmd = (dateLike) => {
+          const d = new Date(dateLike);
+          const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
+          return kst.toISOString().split('T')[0];
+        };
+        const completedDateSet = new Set();
+        routineTimes.forEach((rt) => {
+          if (!rt.date) return;
+          if ((rt.progress ?? 0) >= 100) {
+            completedDateSet.add(toKstYmd(rt.date));
+          }
+        });
+
+        const completedDays = Math.min(TOTAL_DAYS, completedDateSet.size);
         const percent = Math.min(
           100,
           Math.round((completedDays / TOTAL_DAYS) * 100)
         );
 
-        const completedToday = routineTimes.some((rt) => {
-          const dateStr = new Date(rt.date).toISOString().split('T')[0];
-          return dateStr === todayStr && rt.progress >= 100;
-        });
+        const todayStr = toKstYmd(new Date());
+        const completedToday = completedDateSet.has(todayStr);
+
+        let status = 'PAUSED';
+        if (percent === 100) status = 'COMPLETED';
+        else if (r.is_active) status = 'ACTIVE';
 
         const latestTime = routineTimes[0];
         const timeText = latestTime
           ? new Date(latestTime.date).toLocaleDateString('ko-KR', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
               hour: '2-digit',
               minute: '2-digit',
             })
@@ -325,7 +341,7 @@
           id: r.id,
           title: r.routine?.title || r.routine?.name || '이름 없는 루틴',
           description: r.routine?.description || '',
-          status: r.is_active ? 'ACTIVE' : 'PAUSED',
+          status,
           progressPercent: percent,
           completedDays,
           totalDays: TOTAL_DAYS,
@@ -335,8 +351,16 @@
         };
       });
 
-      renderRoutines(routines);
       updateSummary(routines);
+
+      let view = routines;
+
+      if (statusFilter && statusFilter !== 'all') {
+        view = routines.filter((r) => r.status === statusFilter);
+      } else {
+        view = routines.filter((r) => r.status !== 'COMPLETED');
+      }
+      renderRoutines(view);
     } catch (err) {
       console.error('루틴 목록 조회 실패: ', err);
       renderRoutines([]);
@@ -424,12 +448,14 @@
       completeBtn.textContent = '오늘 완료함';
 
       if (newPercent === 100) {
+        routine.status = 'COMPLETED';
         const statusBadge = li.querySelector('.routine-status-badge');
         if (statusBadge) {
           statusBadge.textContent = '완료';
           statusBadge.classList.remove('active', 'paused');
           statusBadge.classList.add('completed');
         }
+        await fetchRoutines('all');
       }
     } catch (e) {
       console.error('루틴 완료 처리 중 예외 발생: ', e);
