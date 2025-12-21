@@ -20,27 +20,15 @@
       </header>
 
       <section class="hero-card" aria-label="캘린더 안내">
-        <div class="emoji">📅</div>
+        <img
+          class="hero-icon"
+          src="./assets/img/routiner.svg"
+          alt="Routiner 아이콘"
+        />
         <p class="hero-text">하루하루 채워보는 나의 루틴</p>
       </section>
 
       <section class="social">
-        <button id="googleLoginBtn" class="btn btn-google">
-          <img src="./assets/img/google.svg" alt="Google 로그인" class="icon" />
-          Google 로그인
-        </button>
-        <button id="kakaoLoginBtn" class="btn btn-kakao">
-          <img src="./assets/img/kakao.svg" alt="Kakao 로그인" class="icon" />
-          Kakao 로그인
-        </button>
-
-        <!-- 구분선 -->
-        <div class="divider">
-          <span class="divider-line"></span>
-          <span class="divider-text">또는 이메일로 로그인</span>
-          <span class="divider-line"></span>
-        </div>
-
         <!-- 기본 로그인 폼 -->
         <form id="basicLoginForm" class="login-form" autocomplete="on">
           <div class="field">
@@ -74,6 +62,15 @@
             aria-live="polite"
           ></p>
         </form>
+
+        <button id="googleLoginBtn" class="btn btn-google">
+          <img src="./assets/img/google.svg" alt="Google 로그인" class="icon" />
+          Google 로그인
+        </button>
+        <button id="kakaoLoginBtn" class="btn btn-kakao">
+          <img src="./assets/img/kakao.svg" alt="Kakao 로그인" class="icon" />
+          Kakao 로그인
+        </button>
       </section>
 
       <nav class="nav" aria-label="하단 네비게이션">
