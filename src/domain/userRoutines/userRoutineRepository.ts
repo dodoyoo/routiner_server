@@ -37,12 +37,12 @@ export class UserRoutineRepository {
     }
 
     const now = new Date();
-    const koreaTime = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+    const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+    const startStr = kst.toISOString().split('T')[0]!;
 
-    const startDate = koreaTime;
-
-    const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + 6);
+    const startDate = new Date(startStr);
+    const endDate = new Date(startStr);
+    endDate.setDate(endDate.getDate() + 6);
 
     const newRoutines = this.repository.create({
       user_id,
