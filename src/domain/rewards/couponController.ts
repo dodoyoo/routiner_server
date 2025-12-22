@@ -1,10 +1,11 @@
 import { Request, Response } from 'express';
 import { CouponRepository } from './couponRepository';
+import { RoutineTimeRepository } from '../routineTimes/routineTimeRepository';
 import { PropertyRequiredError } from '../../utils/customError';
 import { reportErrorMessage } from '../../utils/errorHandling';
-
-const ALLOWED_STATUS = new Set(['issued', 'redeemed', 'expired'] as const);
-type CouponStatus = 'issued' | 'redeemed' | 'expired';
+import { JwtUserPayload } from '../../utils/jwt';
+import { CouponStatus } from './couponEntity';
+import { request } from 'http';
 
 export class CouponController {
   private couponRepository = new CouponRepository();
@@ -15,27 +16,53 @@ export class CouponController {
 
   public async issueAfterComplete(req: Request, res: Response) {
     try {
-      const { user_id, user_routine_id } = req.body;
-      if (!user_id || !user_id) {
+      const user = req.user as JwtUserPayload | undefined;
+      const user_id = user?.userId;
+      const { user_routine_id, requestCount } = req.body;
+
+      if (!user_id || !user_routine_id) {
         return res
           .status(400)
           .json({ message: 'user_id, user_routine_id가 필요합니다.' });
       }
 
-      const rawStatus = (req.query.status as string | undefined)?.toLowerCase();
-      if (rawStatus) {
-        if (!ALLOWED_STATUS.has(rawStatus as CouponStatus)) {
-          return res.status(400).json({
-            message: 'status는 issued|redeemed|expired 중 하나여야합니다.',
-          });
-        }
-        status = rawStatus as CouponStatus;
+      const result = await this.couponRepository.issueMonthlyCouponsByProgress(
+        user_id,
+        user_routine_id,
+        requestCount
+      );
+
+      if (!result.issued) {
+        return res.status(400).json({
+          message: '쿠폰 발급 조건을 만족하지 못했습니다.',
+          reason: result.reason,
+          periodStart: result.periodStart,
+          periodEnd: result.periodEnd,
+          completionCount: result.completionCount,
+          requiredPerCoupon: result.requiredPerCoupon,
+          maxCouponsByRule: result.maxCouponsByRule,
+          alreadyIssued: result.alreadyIssued,
+          canIssue: result.canIssue,
+        });
       }
 
-      return res.status(200).json({ message: '쿠폰 목록 조회 성공' });
+      return res
+        .status(200)
+        .json({
+          message: '쿠폰 발급 성공',
+          periodStart: result.periodStart,
+          periodEnd: result.periodEnd,
+          issuedNow: result.issuedNow,
+          coupons: result.coupons,
+          completionCount: result.completionCount,
+          maxCouponsByRule: result.maxCouponsByRule,
+          alreadyIssued: result.alreadyIssued,
+        });
     } catch (err: any) {
-      console.error('쿠폰 목록 조회 실패', err);
-      return res.status(500).json({ message: '쿠폰 목록 조회 실패', err });
+      console.error('쿠폰 발급 실패', err);
+      return res
+        .status(500)
+        .json({ message: '쿠폰 발급 실패: ', error: String(err) });
     }
   }
 
@@ -72,12 +99,10 @@ export class CouponController {
 
       const count = await this.couponRepository.availableCoupon(user_id);
 
-      return res
-        .status(200)
-        .json({
-          message: '사용가능 쿠폰 개수 조회 성공',
-          data: { usable_count: count },
-        });
+      return res.status(200).json({
+        message: '사용가능 쿠폰 개수 조회 성공',
+        data: { usable_count: count },
+      });
     } catch (err: any) {
       console.error('사용가능 쿠폰 개수 조회 실패: ', err);
       return res.status(500).json({ message: '서버오류', err });

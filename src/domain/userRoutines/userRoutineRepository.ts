@@ -42,7 +42,7 @@ export class UserRoutineRepository {
     const startDate = koreaTime;
 
     const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + 7);
+    endDate.setDate(startDate.getDate() + 6);
 
     const newRoutines = this.repository.create({
       user_id,
