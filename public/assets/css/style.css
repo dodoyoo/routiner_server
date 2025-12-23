@@ -80,9 +80,10 @@ body {
   box-shadow: var(--shadow);
   animation: fadeUp 0.6s ease both;
 }
+
 .hero-icon {
-  width: 56px; /* 화면에서 원하는 크기로 조절 */
-  height: 56px;
+  width: 120px;
+  height: 120px;
   display: block;
   margin: 0 auto 12px; /* 가운데 정렬 + 아래 간격 */
   object-fit: contain;
