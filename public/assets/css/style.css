@@ -80,6 +80,16 @@ body {
   box-shadow: var(--shadow);
   animation: fadeUp 0.6s ease both;
 }
+
+.hero-icon {
+  width: 120px;
+  height: 120px;
+  display: block;
+  margin: 0 auto 12px; /* 가운데 정렬 + 아래 간격 */
+  object-fit: contain;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.35)); /* 필요 없으면 제거 */
+}
+
 .emoji {
   font-size: 48px;
   line-height: 1;
