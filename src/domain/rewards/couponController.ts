@@ -1,4 +1,6 @@
 import { Request, Response } from 'express';
+import { AppDataSource } from '../../models/dataSource';
+import { UserRoutines } from '../userRoutines/userRoutineEntity';
 import { CouponRepository } from './couponRepository';
 import { RoutineTimeRepository } from '../routineTimes/routineTimeRepository';
 import { PropertyRequiredError } from '../../utils/customError';
@@ -6,6 +8,7 @@ import { reportErrorMessage } from '../../utils/errorHandling';
 import { JwtUserPayload } from '../../utils/jwt';
 import { CouponStatus } from './couponEntity';
 import { request } from 'http';
+import { UpdateResult } from 'typeorm';
 
 export class CouponController {
   private couponRepository = new CouponRepository();
@@ -46,18 +49,27 @@ export class CouponController {
         });
       }
 
-      return res
-        .status(200)
-        .json({
-          message: '쿠폰 발급 성공',
-          periodStart: result.periodStart,
-          periodEnd: result.periodEnd,
-          issuedNow: result.issuedNow,
-          coupons: result.coupons,
-          completionCount: result.completionCount,
-          maxCouponsByRule: result.maxCouponsByRule,
-          alreadyIssued: result.alreadyIssued,
+      const updateResult = await AppDataSource.getRepository(
+        UserRoutines
+      ).update({ id: Number(user_routine_id), user_id }, { is_active: false });
+
+      if (!updateResult.affected) {
+        console.warn('[coupon] user_routine 비활성화 실패', {
+          user_id,
+          user_routine_id,
         });
+      }
+
+      return res.status(200).json({
+        message: '쿠폰 발급 성공',
+        periodStart: result.periodStart,
+        periodEnd: result.periodEnd,
+        issuedNow: result.issuedNow,
+        coupons: result.coupons,
+        completionCount: result.completionCount,
+        maxCouponsByRule: result.maxCouponsByRule,
+        alreadyIssued: result.alreadyIssued,
+      });
     } catch (err: any) {
       console.error('쿠폰 발급 실패', err);
       return res

@@ -26,11 +26,14 @@ export class RoutineTimeController {
           .json({ message: 'user_id와 user_routine_id가 필요합니다.' });
       }
 
-      const result = await this.routineTimeRepository.routineComplete(
-        user_id,
-        user_routine_id
-      );
-      return res.status(200).json({ message: '루틴 완료 처리 성공', result });
+      const { record, deactivated } =
+        await this.routineTimeRepository.completeAndDeactivateIfFinished(
+          user_id,
+          user_routine_id
+        );
+      return res
+        .status(200)
+        .json({ message: '루틴 완료 처리 성공', result: record, deactivated });
     } catch (error) {
       console.error('루틴 완료 처리 실패:', error);
       return res.status(500).json({ message: '서버 에러' });
