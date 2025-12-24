@@ -16,6 +16,27 @@ export class UserRoutineRepository {
     this.userRepository = dataSource.getRepository(User);
   }
 
+  private toKstYmd(dateLike: any): string {
+    const d = new Date(dateLike);
+    const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
+    return kst.toISOString().split('T')[0]!;
+  }
+
+  private addDays(date: Date, days: number): Date {
+    const d = new Date(date);
+    d.setDate(d.getDate() + days);
+    return d;
+  }
+
+  private isCompletedOn(ur: any, ymd: string): boolean {
+    const times = ur.routineTimes || [];
+    return times.some((rt: any) => {
+      if (!rt?.date) return false;
+      const rtYmd = this.toKstYmd(rt.date);
+      return rtYmd === ymd && (rt.progress ?? 0) >= 100;
+    });
+  }
+
   // 사용자 루틴 생성
   public async createUserRoutines(data: {
     user_id: number;
@@ -28,11 +49,11 @@ export class UserRoutineRepository {
       throw new NotFoundDataError('존재하지 않는 사용자입니다.');
     }
 
-    const existingRoutines = await this.repository.findOne({
-      where: { user_id, routine_id },
+    const existingActive = await this.repository.findOne({
+      where: { user_id, routine_id, is_active: true },
     });
 
-    if (existingRoutines) {
+    if (existingActive) {
       throw new DuplicatePropertyError('이미 선택한 루틴입니다.');
     }
 
@@ -58,10 +79,8 @@ export class UserRoutineRepository {
   // 사용자 루틴 조회
   public async findUserRoutines(user_id: number) {
     try {
-      const now = new Date();
-      const todayStr = new Date(now.getTime() + 9 * 60 * 60 * 1000)
-        .toISOString()
-        .split('T')[0];
+      const todayYmd = this.toKstYmd(new Date());
+
       const routines = await this.repository
         .createQueryBuilder('user_routine')
         .leftJoinAndSelect('user_routine.routine', 'routine')
@@ -73,9 +92,43 @@ export class UserRoutineRepository {
           { user_id }
         )
         .where('user_routine.user_id = :user_id', { user_id })
+        .andWhere('user_routine.is_active = :active', { active: true })
         .orderBy('user_routine.start_date', 'DESC')
         .getMany();
-      return routines;
+
+      const toDeactivate: UserRoutines[] = [];
+
+      for (const ur of routines) {
+        if (!ur.start_date) continue;
+
+        // 7일 중 "오늘 이전 날짜"에 미완료가 있으면 실패로 간주
+        let missed = false;
+
+        for (let i = 0; i < 7; i++) {
+          const dayYmd = this.toKstYmd(
+            this.addDays(new Date(ur.start_date as any), i)
+          );
+
+          // 오늘 이전만 체크 (오늘은 아직 완료 안 했을 수 있으니 제외)
+          if (dayYmd < todayYmd) {
+            const done = this.isCompletedOn(ur, dayYmd);
+            if (!done) {
+              missed = true;
+              break;
+            }
+          }
+        }
+
+        if (missed) {
+          ur.is_active = false;
+          toDeactivate.push(ur);
+        }
+      }
+
+      if (toDeactivate.length > 0) {
+        await this.repository.save(toDeactivate);
+      }
+      return routines.filter((ur) => ur.is_active);
     } catch (error) {
       console.error('루틴을 불러오는데 실패했습니다.', error);
       throw new Error('Failed to get routines');
@@ -99,15 +152,53 @@ export class UserRoutineRepository {
   }
 
   public async findCurrentUserRoutines(user_id: number) {
-    const today = new Date().toISOString().split('T')[0];
-    return await this.repository
+    const todayYmd = this.toKstYmd(new Date());
+
+    const routines = await this.repository
       .createQueryBuilder('user_routine')
       .leftJoinAndSelect('user_routine.routine', 'routine')
       .leftJoinAndSelect('routine.category', 'category')
+      .leftJoinAndSelect(
+        'user_routine.routineTimes',
+        'routineTime',
+        'routineTime.user_id = :user_id',
+        { user_id }
+      )
       .where('user_routine.user_id = :user_id', { user_id })
-      .andWhere('user_routine.start_date <= :today', { today })
-      .andWhere('user_routine.end_date >= :today', { today })
+      .andWhere('user_routine.is_active = :active', { active: true })
+      .andWhere('DATE(user_routine.start_date) <= :today', { today: todayYmd })
+      .andWhere('DATE(user_routine.end_date) >= :today', { today: todayYmd })
       .orderBy('user_routine.start_date', 'DESC')
       .getMany();
+
+    const toDeactivate: UserRoutines[] = [];
+
+    for (const ur of routines) {
+      if (!ur.start_date) continue;
+
+      let missed = false;
+      for (let i = 0; i < 7; i++) {
+        const dayYmd = this.toKstYmd(
+          this.addDays(new Date(ur.start_date as any), i)
+        );
+        if (dayYmd < todayYmd) {
+          if (!this.isCompletedOn(ur, dayYmd)) {
+            missed = true;
+            break;
+          }
+        }
+      }
+
+      if (missed) {
+        ur.is_active = false;
+        toDeactivate.push(ur);
+      }
+    }
+
+    if (toDeactivate.length > 0) {
+      await this.repository.save(toDeactivate);
+    }
+
+    return routines.filter((ur) => ur.is_active);
   }
 }
